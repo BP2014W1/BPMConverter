@@ -1,4 +1,4 @@
-# JConverter
+# BPMConverter
 
 This repository contains a project for converting and synchronizing different Business Process Model representations.
 If you would like to learn more about this topic you might want to read [this paper (PDF)](http://bpt.hpi.uni-potsdam.de/pub/Public/AndreasMeyer/Activity-centric_and_Artifact-centric_Process_Model_Roundtrip.pdf).

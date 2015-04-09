@@ -1,17 +1,15 @@
 package de.uni_potsdam.hpi.bpt.bp2014.conversion.converter;
 
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IEdge;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.IModel;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.INode;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.*;
-import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.DataObjectState;
-import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.ObjectLifeCycle;
-import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.StateTransition;
-import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.SynchronizedObjectLifeCycle;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.*;
 
 import javax.naming.ldap.Control;
 import java.util.*;
 
-public class SynchronizedOLCToActivityCentric {
+public class SynchronizedOLCToActivityCentric implements IConverter {
     private SynchronizedObjectLifeCycle synchronizedObjectLifeCycle;
     private List<CombinedTransition> combinedTransitions;
     private List<INode> nodesToBeChecked;
@@ -403,5 +401,14 @@ public class SynchronizedOLCToActivityCentric {
             newNode.addOutgoingEdge(new DataFlow(newNode, output));
         }
         return newNode;
+    }
+
+    @Override
+    public <T extends IModel> T convert(IModel model, Class T) {
+        if (T != ActivityCentricProcessModel.class ||
+               !(model instanceof  SynchronizedObjectLifeCycle)) {
+            return null;
+        }
+        return (T)convert((SynchronizedObjectLifeCycle)model);
     }
 }

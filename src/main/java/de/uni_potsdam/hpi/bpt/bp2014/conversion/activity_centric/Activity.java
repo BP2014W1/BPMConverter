@@ -3,7 +3,10 @@ package de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IEdge;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.INode;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class Activity implements INode {
     private Set<DataFlow> incomingDataFlow;
@@ -39,9 +42,9 @@ public class Activity implements INode {
         if (edge instanceof ControlFlow) {
             assert incomingControlFlow.isEmpty() :
                     "Each activity must have only one incoming ControlFlow";
-            incomingControlFlow.add((ControlFlow)edge);
+            incomingControlFlow.add((ControlFlow) edge);
         } else {
-            incomingDataFlow.add((DataFlow)edge);
+            incomingDataFlow.add((DataFlow) edge);
         }
     }
 
@@ -55,9 +58,9 @@ public class Activity implements INode {
         if (edge instanceof ControlFlow) {
             assert outgoingControlFlow.isEmpty() :
                     "Each activity must have only one outgoing ControlFlow";
-            outgoingControlFlow.add((ControlFlow)edge);
+            outgoingControlFlow.add((ControlFlow) edge);
         } else {
-            outgoingDataFlow.add((DataFlow)edge);
+            outgoingDataFlow.add((DataFlow) edge);
         }
     }
 
@@ -76,38 +79,38 @@ public class Activity implements INode {
     }
 
     @Override
-    public <T extends IEdge> List<T> getOutgoingEdgesOfType(Class T) {
-        if (T == IEdge.class) {
-            return (List<T>)getOutgoingEdges();
-        } else if (T == DataFlow.class) {
-            return new ArrayList<T>((Set<T>)outgoingDataFlow);
-        } else if (T == ControlFlow.class) {
-            return new ArrayList<T>((Set<T>)outgoingControlFlow);
+    public <T extends IEdge> List<T> getOutgoingEdgesOfType(Class t) {
+        if (t.isAssignableFrom(DataFlow.class)) {
+            return new ArrayList<T>((Set<T>) outgoingDataFlow);
+        } else if (t.isAssignableFrom(ControlFlow.class)) {
+            return new ArrayList<T>((Set<T>) outgoingControlFlow);
+        } else if (t.isAssignableFrom(IEdge.class)) {
+            return (List<T>) getOutgoingEdges();
         } else {
             return new ArrayList<T>();
         }
     }
 
     @Override
-    public <T extends IEdge> List<T> getIncomingEdgesOfType(Class T) {
-        if (T == IEdge.class) {
-            return (List<T>)getIncomingEdges();
-        } else if (T == DataFlow.class) {
-            return new ArrayList<T>((Set<T>)incomingDataFlow);
-        } else if (T == ControlFlow.class) {
-            return new ArrayList<T>((Set<T>)incomingControlFlow);
+    public <T extends IEdge> List<T> getIncomingEdgesOfType(Class t) {
+        if (t.isAssignableFrom(DataFlow.class)) {
+            return new ArrayList<T>((Set<T>) incomingDataFlow);
+        } else if (t.isAssignableFrom(ControlFlow.class)) {
+            return new ArrayList<T>((Set<T>) incomingControlFlow);
+        } else if (t.isAssignableFrom(IEdge.class)) {
+            return (List<T>) getIncomingEdges();
         } else {
             return new ArrayList<T>();
         }
+    }
+
+    public String getName() {
+        return name;
     }
 
     public void setName(String name) {
         assert null != name :
                 "The name of an activity must never be null";
         this.name = name;
-    }
-
-    public String getName() {
-        return name;
     }
 }

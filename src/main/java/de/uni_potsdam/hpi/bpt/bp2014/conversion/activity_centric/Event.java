@@ -62,18 +62,18 @@ public class Event implements INode {
     }
 
     @Override
-    public <T extends IEdge> List<T> getOutgoingEdgesOfType(Class T) {
+    public <T extends IEdge> List<T> getOutgoingEdgesOfType(Class t) {
         List<T> outgoingEdges = new ArrayList<>(1);
-        if (T == ControlFlow.class && type.equals(Type.START)) {
+        if (t.isAssignableFrom(ControlFlow.class) && type.equals(Type.START)) {
             outgoingEdges.add((T)edge);
         }
         return outgoingEdges;
     }
 
     @Override
-    public <T extends IEdge> List<T> getIncomingEdgesOfType(Class T) {
+    public <T extends IEdge> List<T> getIncomingEdgesOfType(Class t) {
         List<T> incomingEdges = new ArrayList<>(1);
-        if (T == ControlFlow.class && type.equals(Type.END) && null != edge) {
+        if (t.isAssignableFrom(ControlFlow.class) && type.equals(Type.END) && null != edge) {
             incomingEdges.add((T)edge);
         }
         return incomingEdges;

@@ -84,8 +84,8 @@ public class ActivityCentricProcessModel implements IModel {
     }
 
     @Override
-    public <T extends INode> List<T> getFinalNodesOfClass(Class T) {
-        if (T == Event.class) {
+    public <T extends INode> List<T> getFinalNodesOfClass(Class t) {
+        if (t.isAssignableFrom(Event.class)) {
             return (List<T>)getFinalStates();
         } else {
             return new ArrayList<>(0);

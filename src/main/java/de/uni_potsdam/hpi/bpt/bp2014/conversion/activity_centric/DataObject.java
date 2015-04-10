@@ -81,16 +81,16 @@ public class DataObject implements INode {
     }
 
     @Override
-    public <T extends IEdge> List<T> getOutgoingEdgesOfType(Class T) {
-        if (T == DataObject.class) {
+    public <T extends IEdge> List<T> getOutgoingEdgesOfType(Class t) {
+        if (t.isAssignableFrom(DataObject.class)) {
             return new ArrayList<>((List<T>) outgoingDataFlow);
         }
         return new ArrayList<>();
     }
 
     @Override
-    public <T extends IEdge> List<T> getIncomingEdgesOfType(Class T) {
-        if (T == DataObject.class) {
+    public <T extends IEdge> List<T> getIncomingEdgesOfType(Class t) {
+        if (t.isAssignableFrom(DataObject.class)) {
             return new ArrayList<>((List<T>) incomingDataFlow);
         }
         return new ArrayList<>();

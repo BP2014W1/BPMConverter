@@ -37,10 +37,10 @@ public class SynchronizedObjectLifeCycle implements IModel {
     }
 
     @Override
-    public <T extends INode> List<T> getNodesOfClass(Class T) {
+    public <T extends INode> List<T> getNodesOfClass(Class t) {
         List<T> nodes = new LinkedList<>();
         for (ObjectLifeCycle olc : objectLifeCycles) {
-            nodes.addAll((List<T>) olc.getNodesOfClass(T));
+            nodes.addAll((List<T>) olc.getNodesOfClass(t));
         }
         return nodes;
     }
@@ -70,10 +70,10 @@ public class SynchronizedObjectLifeCycle implements IModel {
     }
 
     @Override
-    public <T extends INode> List<T> getFinalNodesOfClass(Class T) {
+    public <T extends INode> List<T> getFinalNodesOfClass(Class t) {
         List<T> nodes = new LinkedList<>();
         for (ObjectLifeCycle olc : objectLifeCycles) {
-            nodes.addAll((List<T>)olc.getFinalNodesOfClass(T));
+            nodes.addAll((List<T>)olc.getFinalNodesOfClass(t));
         }
         return nodes;
     }

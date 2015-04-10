@@ -1,12 +1,12 @@
 package de.uni_potsdam.hpi.bpt.bp2014.conversion.converter;
 
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.IConverter;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IEdge;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IModel;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.INode;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.*;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.*;
 
-import javax.naming.ldap.Control;
 import java.util.*;
 
 public class SynchronizedOLCToActivityCentric implements IConverter {

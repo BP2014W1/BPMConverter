@@ -49,8 +49,8 @@ public class ObjectLifeCycle implements IModel {
     }
 
     @Override
-    public <T extends INode> List<T> getNodesOfClass(Class T) {
-        if (T == DataObjectState.class) {
+    public <T extends INode> List<T> getNodesOfClass(Class t) {
+        if (t.isAssignableFrom(DataObjectState.class)) {
             return new LinkedList<T>((List<T>)states);
         } else {
             return new LinkedList<T>();
@@ -88,8 +88,8 @@ public class ObjectLifeCycle implements IModel {
     }
 
     @Override
-    public <T extends INode> List<T> getFinalNodesOfClass(Class T) {
-        if (T == DataObjectState.class || T == INode.class) {
+    public <T extends INode> List<T> getFinalNodesOfClass(Class t) {
+        if (t.isAssignableFrom(DataObjectState.class) || t.equals(INode.class)) {
             return new ArrayList<T>((List<T>) finalStates);
         } else {
             return new ArrayList<T>();

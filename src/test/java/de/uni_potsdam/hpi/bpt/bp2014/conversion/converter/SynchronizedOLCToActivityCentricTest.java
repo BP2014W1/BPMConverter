@@ -116,6 +116,7 @@ public class SynchronizedOLCToActivityCentricTest {
         node1.addIncomingEdge(transition);
         node2.addOutgoingEdge(transition);
         olc.addNode(node1);
+
         olc.addFinalNode(node1);
         sequenceOfTwo = new SynchronizedObjectLifeCycle();
         sequenceOfTwo.getOLCs().add(olc);
@@ -238,9 +239,29 @@ public class SynchronizedOLCToActivityCentricTest {
         activity = (Activity)activity.getOutgoingEdgesOfType(ControlFlow.class).get(0).getTarget();
         assertEquals("The 2nd Activity is not \"Pay bill\"",
                 "Pay bill", activity.getName());
-        // TODO: Extend tests.
+        assertEquals("The Activity \"Pay bill\" has more than one incoming data flow",
+                1, activity.getIncomingEdgesOfType(DataFlow.class).size());
+        assertEquals("the data input of Activity \"Pay bill\" is not bill",
+                "Bill", ((DataObject) activity.getIncomingEdgesOfType(DataFlow.class).get(0).getSource()).getName());
+        assertEquals("The data input of Activity \"Pay bill\" is not in the state \"pending\"",
+                "pending", ((DataObject) activity.getIncomingEdgesOfType(DataFlow.class).get(0).getSource()).getState().getName());
+        assertEquals("The Activity \"Pay bill\" has more than one outgoing data flow",
+                1, activity.getOutgoingEdgesOfType(DataFlow.class).size());
+        assertEquals("the data output of Activity \"Pay bill\" is not bill",
+                "Bill", ((DataObject) activity.getOutgoingEdgesOfType(DataFlow.class).get(0).getTarget()).getName());
+        assertEquals("The data output of Activity \"Pay bill\" is not in the state \"paid\"",
+                "paid", ((DataObject) activity.getOutgoingEdgesOfType(DataFlow.class).get(0).getTarget()).getState().getName());
     }
 
+    /**
+     * Given:  Is an Synchronized Object Life Cycle containing two OLCs. Each OLC consists of
+     *         three different states. The states are ordered in a sequence and the two transitions
+     *         are the same in the two OLCs.
+     * When:   You convert this synchronize Object Life Cycle to an Activity Centric Process Model.
+     * Then:   There should be no exceptions. The created Activity Centric Process Model should consist
+     *         of two sequential Activities with each 2 I/O-Objects.
+     *         The naming of the Activities should be the same as the naming of the Edges.
+     */
     @Test
     public void testSequenceOfTwo() {
         SynchronizedOLCToActivityCentric converter = new SynchronizedOLCToActivityCentric();

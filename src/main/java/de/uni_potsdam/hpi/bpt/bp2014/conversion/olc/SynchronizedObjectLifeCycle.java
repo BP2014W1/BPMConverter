@@ -10,7 +10,16 @@ import java.util.*;
  */
 public class SynchronizedObjectLifeCycle implements IModel {
     private List<ObjectLifeCycle> objectLifeCycles;
-    private Map<StateTransition, StateTransition> synchronisationEdges;
+
+    public Map<StateTransition, List<StateTransition>> getSynchronisationEdges() {
+        return synchronisationEdges;
+    }
+
+    public void setSynchronisationEdges(Map<StateTransition, List<StateTransition>> synchronisationEdges) {
+        this.synchronisationEdges = synchronisationEdges;
+    }
+
+    private Map<StateTransition, List<StateTransition>> synchronisationEdges;
 
     public SynchronizedObjectLifeCycle() {
         objectLifeCycles = new ArrayList<>();

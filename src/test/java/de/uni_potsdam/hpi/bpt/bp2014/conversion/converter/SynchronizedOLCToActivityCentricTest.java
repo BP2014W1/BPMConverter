@@ -5,7 +5,7 @@ import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.*;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.DataObjectState;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.ObjectLifeCycle;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.StateTransition;
-import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.SynchronizedObjectLifeCycle;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.synchronize.SynchronizedObjectLifeCycle;
 import org.junit.Before;
 import org.junit.Test;
 

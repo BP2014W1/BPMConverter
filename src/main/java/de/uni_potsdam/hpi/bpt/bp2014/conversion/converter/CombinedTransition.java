@@ -4,9 +4,7 @@ import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.DataObjectState;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.ObjectLifeCycle;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.StateTransition;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CombinedTransition {
     Map<StateTransition, ObjectLifeCycle> transitionsAndOLCs;
@@ -38,6 +36,10 @@ public class CombinedTransition {
             }
         }
         return true;
+    }
+
+    public Collection<StateTransition> getTransitions() {
+        return transitionsAndOLCs.keySet();
     }
 
 

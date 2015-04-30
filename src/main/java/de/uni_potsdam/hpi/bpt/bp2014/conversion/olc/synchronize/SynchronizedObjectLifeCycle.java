@@ -1,7 +1,11 @@
-package de.uni_potsdam.hpi.bpt.bp2014.conversion.olc;
+package de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.synchronize;
 
+import com.sun.javafx.scene.control.skin.VirtualFlow;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.IEdge;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IModel;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.INode;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.ObjectLifeCycle;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.StateTransition;
 
 import java.util.*;
 
@@ -85,5 +89,13 @@ public class SynchronizedObjectLifeCycle implements IModel {
             nodes.addAll((List<T>)olc.getFinalNodesOfClass(t));
         }
         return nodes;
+    }
+
+    public <T extends IEdge> List<T> getEdgesOfType(Class t) {
+        Set<T> edges = new HashSet<>();
+        for (INode node : getNodes()) {
+            edges.addAll((Collection<T>) node.getOutgoingEdgesOfType(t));
+        }
+        return new ArrayList<>(edges);
     }
 }

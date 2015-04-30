@@ -3,6 +3,7 @@ package de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.olc;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IEdge;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IModel;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.INode;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.Activity;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.DataObject;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.CombinedTransition;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.DataObjectState;
@@ -60,6 +61,12 @@ public class OLCConversionFlyweight<T extends IModel> {
     private Map<DataObjectState, DataObject> dataObjectsPerState;
 
     /**
+     * This Map saves for each final data state NOP activities.
+     * They will be represented by a {@link Activity} Object.
+     */
+    private Map<DataObjectState, Activity> nopActivitiesForFinalStates;
+
+    /**
      * Constructs a new Flyweight object for the given
      * {@link SynchronizedObjectLifeCycle}.
      * A new model described by the second parameter will be created.
@@ -76,12 +83,12 @@ public class OLCConversionFlyweight<T extends IModel> {
      *                   class or an interface.
      * @throws IllegalAccessException Constructor can not be called from here.
      * @throws InstantiationException ModelClass could not be instantiated.
-     *
+     *                                <p/>
      * Pre: * Both parameter must not be null.
      *      * The modelClass parameter must be a concrete Implementation.
      */
     public OLCConversionFlyweight(SynchronizedObjectLifeCycle sOLC,
-                                   Class<T> modelClass)
+                                  Class<T> modelClass)
             throws IllegalAccessException, InstantiationException {
         // Pre-Conditions: Not null
         assert null != sOLC : "The synchronized OLC must not be null";
@@ -102,6 +109,34 @@ public class OLCConversionFlyweight<T extends IModel> {
     private void init() {
         initCombinedTransitions();
         initDataObjects();
+        initNOPActivities();
+    }
+
+    /**
+     * This methods initalizes {@link #nopActivitiesForFinalStates}.
+     * All final states of all OLC being part of the synchronized OLC
+     * will extracted and an Activity will be created.
+     */
+    private void initNOPActivities() {
+        nopActivitiesForFinalStates = new HashMap<>();
+        for (ObjectLifeCycle olc : sOLC.getOLCs()) {
+            for (INode state :
+                    olc.getFinalNodesOfClass(DataObjectState.class)) {
+                addNOPActivityForState((DataObjectState) state);
+            }
+        }
+    }
+
+    /**
+     * Creates a NOP Activity for a final state.
+     * The label will be "NOP : state".
+     * The activity will added to the map {@link #nopActivitiesForFinalStates}.
+     *
+     * @param state The final state for the NOP.
+     */
+    private void addNOPActivityForState(DataObjectState state) {
+        Activity nop = new Activity("NOP : " + state.getName());
+        nopActivitiesForFinalStates.put(state, nop);
     }
 
     /**
@@ -116,7 +151,7 @@ public class OLCConversionFlyweight<T extends IModel> {
         for (ObjectLifeCycle olc : sOLC.getOLCs()) {
             for (INode state : olc.getNodesOfClass(DataObjectState.class)) {
                 DataObject newObject = new DataObject(olc.getLabel(),
-                        (DataObjectState)state);
+                        (DataObjectState) state);
                 newObject.setOlc(olc);
                 dataObjectsPerState.put((DataObjectState) state, newObject);
             }
@@ -176,7 +211,7 @@ public class OLCConversionFlyweight<T extends IModel> {
      * @return A new collection with all combined transitions.
      */
     public Collection<CombinedTransition> getCombinedTransitions() {
-        return new ArrayList<>(combinedTransitions);
+        return new ArrayList<CombinedTransition>(combinedTransitions);
     }
 
     /**
@@ -197,11 +232,20 @@ public class OLCConversionFlyweight<T extends IModel> {
      * The {@link #dataObjectsPerState} have to be initialized first.
      *
      * @param state The State of the data object.
-     *
-     * Pre-Condition: {@link #dataObjectsPerState} must be initialized.
+     *              <p/>
+     *              Pre-Condition: {@link #dataObjectsPerState} must be initialized.
      */
     public DataObject getDataobjectForState(DataObjectState state) {
         assert dataObjectsPerState != null : "The data objects have to initialized";
         return dataObjectsPerState.get(state);
+    }
+
+    /**
+     * Returns the NOP Activity for a given state
+     *
+     * @return The Activity representing the NOP null state is not final.
+     */
+    public Activity getNOPActivityForState(DataObjectState state) {
+        return nopActivitiesForFinalStates.get(state);
     }
 }

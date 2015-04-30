@@ -512,7 +512,7 @@ public class SynchronizedOLCToActivityCentric implements IConverter {
      * This method creates an activity for each enabled combined transition.
      * The created Activity will be added to the new process model.
      * It will also be added to the activities reachabel from the current node.
-     * 
+     *
      */
     private void createActivities() {
         for (CombinedTransition ect : enabledCombinedTransitions) {

@@ -100,7 +100,7 @@ public class OLCConversionFlyweight<T extends IModel> {
     }
 
     /**
-     * This method initalizes some fields.
+     * This method initializes some fields.
      * All attributes which can be determined based on the synchronized
      * Object Life Cycle and the model Class will be initalized.
      * Except for the {@link #modelUnderConstruction} which will be set

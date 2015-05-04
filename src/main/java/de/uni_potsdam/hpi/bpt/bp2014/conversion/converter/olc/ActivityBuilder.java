@@ -306,12 +306,11 @@ public class ActivityBuilder {
         assert enabledCTs != null : "The enabledCTs must be initialized";
         if (this.concurrentCTs == null) {
             assert concurrentCTs != null : "The parameter must not be null.";
+            concurrentCTs.remove(this);
             this.concurrentCTs = new HashSet<>(concurrentCTs);
-            this.concurrentCTs.remove(this);
-            enabledCTs.removeAll(concurrentCTs);
         }
         Collection<DataObjectState> statesAfterTermination =
-                getStatesAfterConcurrentActivities(this.concurrentCTs);
+                getStatesAfterConcurrentActivities(concurrentCTs);
         pets = new HashSet<>();
         for (Object element : flyweight.getCombinedTransitions()) {
             CombinedTransition ct = (CombinedTransition)element;
@@ -327,6 +326,8 @@ public class ActivityBuilder {
         }
         pets.removeAll(ctsToBeRemoved);
         markAsChecked();
+        enabledCTs.removeAll(this.concurrentCTs);
+        pets.removeAll(this.concurrentCTs);
         return this;
     }
 
@@ -359,7 +360,7 @@ public class ActivityBuilder {
 
     /**
      * This methods determines all data states which available
-     * after ther termiantion of this and all concurrent activities.
+     * after the termination of this and all concurrent activities.
      * They are needed to reduce the possible enabled Combined Transitions.
      * @param concurrentCTs The Combined Transitions which represent activities
      *                      concurrent to this one.

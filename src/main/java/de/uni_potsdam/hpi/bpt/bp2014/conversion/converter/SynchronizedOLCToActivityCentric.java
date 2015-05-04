@@ -96,7 +96,7 @@ public class SynchronizedOLCToActivityCentric implements IConverter {
                     new HashSet<>();
             if (!exclusive) {
                 for (ActivityBuilder activityBuilder : nodesToBeChecked) {
-                    if (activityBuilder.isChecked()) {
+                    if (!activityBuilder.isChecked()) {
                         concurrentCombinedTransitions.add(activityBuilder.getCtExecuted());
                     }
                 }

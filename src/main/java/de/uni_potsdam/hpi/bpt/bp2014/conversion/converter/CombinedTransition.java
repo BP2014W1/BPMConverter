@@ -29,7 +29,7 @@ public class CombinedTransition {
         transitionsAndOLCs.put(transition, olc);
     }
 
-    public boolean isEnabledForStates(List<DataObjectState> enabledStates) {
+    public boolean isEnabledForStates(Collection<DataObjectState> enabledStates) {
         for (StateTransition transition : transitionsAndOLCs.keySet()) {
             if (!enabledStates.contains(transition.getSource())) {
                 return false;

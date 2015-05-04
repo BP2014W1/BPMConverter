@@ -3,18 +3,14 @@ package de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.olc;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IEdge;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IModel;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.INode;
-import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.Activity;
-import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.DataObject;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.*;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.CombinedTransition;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.DataObjectState;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.ObjectLifeCycle;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.StateTransition;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.synchronize.SynchronizedObjectLifeCycle;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This is a Flyweight for objects involved in the transformation of sOLCs.
@@ -65,6 +61,9 @@ public class OLCConversionFlyweight<T extends IModel> {
      * They will be represented by a {@link Activity} Object.
      */
     private Map<DataObjectState, Activity> nopActivitiesForFinalStates;
+
+    private Map<Activity, Collection<ControlFlow>> incomingEdgesOfNOP;
+    private Map<CombinedTransition, ActivityBuilder> builderPerCombinedTransition;
 
     /**
      * Constructs a new Flyweight object for the given
@@ -119,6 +118,7 @@ public class OLCConversionFlyweight<T extends IModel> {
      */
     private void initNOPActivities() {
         nopActivitiesForFinalStates = new HashMap<>();
+        incomingEdgesOfNOP = new HashMap<>();
         for (ObjectLifeCycle olc : sOLC.getOLCs()) {
             for (INode state :
                     olc.getFinalNodesOfClass(DataObjectState.class)) {
@@ -137,6 +137,7 @@ public class OLCConversionFlyweight<T extends IModel> {
     private void addNOPActivityForState(DataObjectState state) {
         Activity nop = new Activity("NOP : " + state.getName());
         nopActivitiesForFinalStates.put(state, nop);
+        incomingEdgesOfNOP.put(nop, new ArrayList<>());
     }
 
     /**
@@ -247,5 +248,85 @@ public class OLCConversionFlyweight<T extends IModel> {
      */
     public Activity getNOPActivityForState(DataObjectState state) {
         return nopActivitiesForFinalStates.get(state);
+    }
+
+    /**
+     * Returns a ActivityBuilder instance for a given combined transition.
+     * Use this method to make sure not to create more than one ActivityBuilder
+     * Object for each combined transition.
+     *
+     * @param ct     The combined transition which specifies the activityBuilder.
+     * @param states The states available before the execution of the activity.
+     * @return The ActivityBuilder instance which can be either new or reused.
+     */
+    public ActivityBuilder getActivityBuilderFor(
+            CombinedTransition ct,
+            Collection<DataObjectState> states) {
+        if (builderPerCombinedTransition == null) {
+            builderPerCombinedTransition = new HashMap<>();
+        }
+        if (builderPerCombinedTransition.get(ct) == null) {
+            ActivityBuilder newActivity = new ActivityBuilder(
+                    (OLCConversionFlyweight<ActivityCentricProcessModel>) this,
+                    states,
+                    ct);
+            builderPerCombinedTransition.put(ct, newActivity);
+        }
+        return builderPerCombinedTransition.get(ct);
+    }
+
+    public void addIncomingEdgeFor(Activity nop, ControlFlow cf) {
+        incomingEdgesOfNOP.get(nop).add(cf);
+    }
+
+    public Collection<ActivityBuilder> getActivityBuilders() {
+        return builderPerCombinedTransition.values();
+    }
+
+    public void finalizeModel() {
+        Event endEvent = new Event();
+        endEvent.setType(Event.Type.END);
+        Collection<Activity> finalActivities = new HashSet<>();
+        for (ActivityBuilder activityBuilder : builderPerCombinedTransition.values()) {
+            Activity activity = activityBuilder.build();
+            finalActivities.addAll(activityBuilder.getNopActivities());
+            if (activity.getOutgoingEdgesOfType(ControlFlow.class).isEmpty()) {
+                finalActivities.add(activity);
+            }
+            modelUnderConstruction.addNode(
+                    activity
+            );
+        }
+        if (finalActivities.size() == 1) {
+            Activity finalActivity = finalActivities.iterator().next();
+            if (nopActivitiesForFinalStates.values().contains(finalActivity)) {
+                IEdge cf = finalActivity.getIncomingEdgesOfType(ControlFlow.class)
+                        .iterator().next();
+                cf.setTarget(endEvent);
+                endEvent.addIncomingEdge(cf);
+            } else {
+                ControlFlow cf = new ControlFlow(finalActivity, endEvent);
+                finalActivity.addOutgoingEdge(cf);
+                endEvent.addIncomingEdge(cf);
+            }
+        } else {
+            Gateway xor = new Gateway();
+            xor.setType(Gateway.Type.XOR);
+            for (Activity finalActivity : finalActivities) {
+                if (nopActivitiesForFinalStates.values().contains(finalActivity)) {
+                    IEdge cf = finalActivity.getIncomingEdgesOfType(ControlFlow.class)
+                            .iterator().next();
+                    cf.setTarget(xor);
+                    xor.addIncomingEdge(cf);
+                } else {
+                    ControlFlow cf = new ControlFlow(finalActivity, xor);
+                    finalActivity.addOutgoingEdge(cf);
+                    xor.addIncomingEdge(cf);
+                }
+            }
+            ControlFlow cf = new ControlFlow(xor, endEvent);
+            xor.addOutgoingEdge(cf);
+            endEvent.addIncomingEdge(cf);
+        }
     }
 }

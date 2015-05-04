@@ -5,6 +5,8 @@ import de.uni_potsdam.hpi.bpt.bp2014.conversion.IEdge;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IModel;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.INode;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.*;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.olc.ActivityBuilder;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.olc.OLCConversionFlyweight;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.DataObjectState;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.ObjectLifeCycle;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.StateTransition;
@@ -429,6 +431,7 @@ public class SynchronizedOLCToActivityCentric implements IConverter {
     private List<INode> createdNodes;
     private Map<INode, List<INode>> nopLists;
     private Map<INode, CombinedTransition> combinedTransitionPerActivity;
+    private Collection<ActivityBuilder> nodesToBeChecked;
 
     /**
      * This methods creates a new activity centric process model.
@@ -470,6 +473,100 @@ public class SynchronizedOLCToActivityCentric implements IConverter {
                 if (olc.getFinalStates().contains(transition.getTarget())) {
                     createNOPActivity((DataObjectState) transition.getTarget());
                 }
+            }
+        }
+    }
+
+    // TODO: Handle start state is final state
+    public ActivityCentricProcessModel olcToACP(SynchronizedObjectLifeCycle sOLC)
+            throws InstantiationException, IllegalAccessException {
+        OLCConversionFlyweight<ActivityCentricProcessModel> flyweight =
+                new OLCConversionFlyweight<>(sOLC,
+                        ActivityCentricProcessModel.class);
+        Event startEvent = new Event();
+        startEvent.type = Event.Type.START;
+        initNodesToBeChecked(flyweight);
+        Collection<ActivityBuilder> nodeBuilderNodesChecked = new HashSet<>();
+        boolean exclusive = false;
+        if (nodesToBeChecked.size() == 1) {
+            nodesToBeChecked.iterator().next().addPredecessor(startEvent);
+        } else {
+            Gateway gateway = new Gateway();
+            if (nodesToBeCheckedAreDisjoint()) {
+                gateway.setType(Gateway.Type.AND);
+            } else {
+                gateway.setType(Gateway.Type.XOR);
+            }
+            ControlFlow incoming = new ControlFlow(startEvent, gateway);
+            gateway.addIncomingEdge(incoming);
+            for (ActivityBuilder activityBuilder : nodesToBeChecked) {
+                activityBuilder.addPredecessor(gateway);
+            }
+        }
+        do {
+            Collection<CombinedTransition> concurrentCombinedTransitions =
+                    new HashSet<>();
+            if (!exclusive) {
+                for (ActivityBuilder activityBuilder : nodesToBeChecked) {
+                    if (activityBuilder.isChecked()) {
+                        concurrentCombinedTransitions.add(activityBuilder.getCtExecuted());
+                    }
+                }
+            }
+            for (ActivityBuilder activityBuilder : nodesToBeChecked) {
+                if (activityBuilder.isChecked()) {
+                    nodeBuilderNodesChecked.add(activityBuilder);
+                } else {
+                    activityBuilder
+                            .findEnabledCombinedTransitions()
+                            .findPossibleEnabledCombinedTransitions(
+                                    concurrentCombinedTransitions);
+                }
+            }
+            nodesToBeChecked.removeAll(nodeBuilderNodesChecked);
+            Collection<ActivityBuilder> newNodes = new HashSet<>();
+            for (ActivityBuilder activityBuilder : nodesToBeChecked) {
+                activityBuilder.establishOutgoingControlFLow();
+                Collection<ActivityBuilder> successors = activityBuilder.getSuccessorActivites();
+                for (ActivityBuilder successor : successors) {
+                    if (!successor.isChecked()) {
+                        nodesToBeChecked.add(successor);
+                    }
+                }
+            }
+            for (ActivityBuilder nodeBuilder : nodesToBeChecked) {
+                nodeBuilder.establishIncomingControlFlow();
+            }
+            for (ActivityBuilder nodeBuilder : nodeBuilderNodesChecked) {
+                nodeBuilder.establishOutgoingControlFLow();
+            }
+        } while (nodesToBeChecked.isEmpty());
+        flyweight.finalizeModel();
+        return flyweight.getModelUnderConstruction();
+    }
+
+    private boolean nodesToBeCheckedAreDisjoint() {
+        for (ActivityBuilder node1 : nodesToBeChecked) {
+            for (ActivityBuilder node2 : nodesToBeChecked) {
+                if (!node1.inputSetsAreDisjoint(node2)) {
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
+
+    private void initNodesToBeChecked(
+            OLCConversionFlyweight<ActivityCentricProcessModel> flyweight) {
+        Collection<DataObjectState> startStates = new HashSet<>();
+        nodesToBeChecked = new LinkedList<>();
+        for (ObjectLifeCycle objectLifeCycle : flyweight.getsOLC().getOLCs()) {
+            startStates.add((DataObjectState) objectLifeCycle.getStartNode());
+        }
+        for (CombinedTransition combinedTransition : flyweight.getCombinedTransitions()) {
+            if (combinedTransition.isEnabledForStates(startStates)) {
+                nodesToBeChecked.add(flyweight.getActivityBuilderFor(combinedTransition,
+                        startStates));
             }
         }
     }

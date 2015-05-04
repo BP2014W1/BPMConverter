@@ -7,7 +7,6 @@ import de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.CombinedTransition;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.DataObjectState;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.StateTransition;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.synchronize.SynchronizedObjectLifeCycle;
-import javafx.animation.Transition;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,7 +32,7 @@ public class ActivityBuilder {
     private OLCConversionFlyweight flyweight;
     /**
      * This {@link CombinedTransition} represents the Transition
-     * exectued by the activity.
+     * executed by the activity.
      */
     private final CombinedTransition ctExecuted;
     /**
@@ -56,7 +55,7 @@ public class ActivityBuilder {
      * This Collection hold ActivityBuilder objects for each successing
      * Activity.
      */
-    private Collection<ActivityBuilder> successorActivites;
+    private Collection<ActivityBuilder> successorActivities;
     /**
      * Saves the concurrent combined transition, to determine
      * the states after termination.
@@ -106,7 +105,7 @@ public class ActivityBuilder {
     private Collection<DataObjectState> availableStates;
 
     /**
-     * Indicates weather or not the node has been chcked.
+     * Indicates weather or not the node has been checked.
      */
     private boolean isChecked = false;
     private Collection<Activity> nopActivities;
@@ -143,28 +142,30 @@ public class ActivityBuilder {
         assert availableStates != null : "The collection of available states must not be null";
         this.flyweight = flyweight;
         this.ctExecuted = ctExecuted;
-        initalize();
+        this.availableStates = new HashSet<>(availableStates);
+        initialize();
     }
 
     /**
-     * This method initalizes attributes.
-     * All initalizations must not base on any other parameters than
+     * This method initializes attributes.
+     * All initializations must not base on any other parameters than
      * the ones given to the constructor, or by elements initalized before.
      */
-    private void initalize() {
-        initalizeActivity();
-        initalizeDataFlow();
+    private void initialize() {
+        initializeActivity();
+        initializeDataFlow();
+        initializeNOPActivities();
         predecessors = new HashSet<>();
     }
 
 
     /**
      * Creates the activity.
-     * The name will be initalized using a string accumulated
+     * The name will be initialized using a string accumulated
      * from the different transitions being part of the combined transition
      * executed by this activity.
      */
-    private void initalizeActivity() {
+    private void initializeActivity() {
         String name = "";
         for (StateTransition transition : ctExecuted.getTransitions()) {
             if (!name.contains(transition.getLabel())) {
@@ -176,13 +177,13 @@ public class ActivityBuilder {
     }
 
     /**
-     * Initalizes the data flow of the activity created by this builder.
+     * Initializes the data flow of the activity created by this builder.
      * Therefor it checks all transitions aggregated by the combined transition.
      * For each transition an input and Data Object, with the state according to
      * the label and state of the Data Object State which is source/target of the
      * data flow will be added.
      */
-    private void initalizeDataFlow() {
+    private void initializeDataFlow() {
         assert activity != null : "The activity has to be initialized first";
         incomingDataFlow = new HashSet<>();
         outgoingDataFlow = new HashSet<>();
@@ -194,16 +195,19 @@ public class ActivityBuilder {
 
     /**
      * Adds a new {@link DataFlow} with the activity as source
-     * and a {@link DataObject} with th specifiedstate as target.
+     * and a {@link DataObject} with the specified state as target.
      *
      * @param target The {@link DataObjectState} for the {@link DataObject}.
      *               <p/>
      *               Pre: {@link #incomingDataFlow} must be initalized
      */
     private void addOutgoingDataFlow(DataObjectState target) {
-        DataFlow dataFlow = new DataFlow(activity,
+        DataFlow dataFlow = new DataFlow(
+                activity,
                 flyweight.getDataobjectForState(target));
+        flyweight.getDataobjectForState(target).addIncomingEdge(dataFlow);
         outgoingDataFlow.add(dataFlow);
+        activity.addOutgoingEdge(dataFlow);
     }
 
 
@@ -216,9 +220,12 @@ public class ActivityBuilder {
      *               Pre: {@link #outgoingDataFlow} must be initalized
      */
     private void addIncomingDataFlow(DataObjectState source) {
-        DataFlow dataFlow = new DataFlow(flyweight.getDataobjectForState(source),
+        DataFlow dataFlow = new DataFlow(
+                flyweight.getDataobjectForState(source),
                 activity);
+        flyweight.getDataobjectForState(source).addOutgoingEdge(dataFlow);
         incomingDataFlow.add(dataFlow);
+        activity.addIncomingEdge(dataFlow);
     }
 
     /**
@@ -262,12 +269,12 @@ public class ActivityBuilder {
         assert flyweight != null : "The flyweight has not been set";
         assert outgoingDataFlow != null : "The DataFlow has to be set";
         assert availableStates != null : "availableStates must be set";
+        enabledCTs = new HashSet<>();
         for (Object element : flyweight.getCombinedTransitions()) {
             CombinedTransition ct = (CombinedTransition)element;
             if (activityEnablesCombinedTransition(ct)) {
                 enabledCTs.add(ct);
             }
-            enabledCTs.add(ct);
         }
         return this;
     }
@@ -275,7 +282,7 @@ public class ActivityBuilder {
 
 
     /**
-     * Initializes {@link #possibleEnabledCTs}.
+     * Initializes {@link #pets}.
      * Combined transitions which depend in parts on Data Objects and
      * states written by the activity represented by this builder.
      *
@@ -283,7 +290,7 @@ public class ActivityBuilder {
      * will be ignored.
      *
      * The set will be disjoint to {@link #enabledCTs}.
-     * Afterwards the collection has to be reducced in order to determine
+     * Afterwards the collection has to be reduced in order to determine
      * which combined transitions will be enabled.
      * Afterwards they will be reduced.
      *
@@ -300,6 +307,7 @@ public class ActivityBuilder {
         if (this.concurrentCTs == null) {
             assert concurrentCTs != null : "The parameter must not be null.";
             this.concurrentCTs = new HashSet<>(concurrentCTs);
+            this.concurrentCTs.remove(this);
         }
         Collection<DataObjectState> statesAfterTermination =
                 getStatesAfterConcurrentActivities(this.concurrentCTs);
@@ -389,9 +397,6 @@ public class ActivityBuilder {
      * This means all {@link DataObjectState} which have to be available at
      * the start of the combined transition are written by the activity
      * represented by this activity builder.
-     * <p/>
-     * Therefore it determines all possible successors of the combinedTransition
-     * which will be
      *
      * @param ct The combined transition to be checked.
      * @return True if it will be enabled else false.
@@ -399,15 +404,10 @@ public class ActivityBuilder {
      * Pre: {@link #ctExecuted} has to be enabled.
      */
     private boolean activityEnablesCombinedTransition(CombinedTransition ct) {
-        Collection<StateTransition> enabledTransitions = getEnabledTransitions(
-                statesAvailableAfterTermination());
-        for (StateTransition transition : enabledTransitions) {
-            Collection<StateTransition> followingTransition =
-                    ctExecuted.getTransitions();
-            followingTransition.retainAll(transition
-                    .getSource()
-                    .getOutgoingEdgesOfType(StateTransition.class));
-            if (followingTransition.isEmpty()) {
+        Collection<DataObjectState> statesAfterTermination =
+                statesAvailableAfterTermination();
+        for (StateTransition transition : ct.getTransitions()) {
+            if (!statesAfterTermination.contains(transition.getSource())) {
                 return false;
             }
         }
@@ -415,14 +415,14 @@ public class ActivityBuilder {
     }
 
     private Collection<StateTransition> getEnabledTransitions(
-            Collection<DataObjectState> enabledStates) {
-        Collection<StateTransition> enabledTransitions = new LinkedList<>();
-        for (DataObjectState state : enabledStates) {
-            for (IEdge transition :
-                    state.getIncomingEdgesOfType(StateTransition.class)) {
-                enabledTransitions.add((StateTransition) transition);
+                Collection<DataObjectState> enabledStates) {
+            Collection<StateTransition> enabledTransitions = new LinkedList<>();
+            for (DataObjectState state : enabledStates) {
+                for (IEdge transition :
+                        state.getIncomingEdgesOfType(StateTransition.class)) {
+                    enabledTransitions.add((StateTransition) transition);
+                }
             }
-        }
         return enabledTransitions;
     }
 
@@ -443,21 +443,26 @@ public class ActivityBuilder {
     }
 
     /**
-     * Initalizes the No Operation activities for the activity.
+     * ializes the No Operation activities for the activity.
      * The NOP Activities will automatically marked as checked.
      * Also an empty combined transition will be added.
      * All NOP Activities are saved centralized inside the flyweight
      * to prevent multiple NOP Activities for the same DataObjectState.
      */
-    private void initalizeNOPActivities() {
+    private void initializeNOPActivities() {
         nopActivities = new HashSet<>();
+        if (outgoingControlFlow == null) {
+            outgoingControlFlow = new HashSet<>();
+        }
         for (StateTransition transition : ctExecuted.getTransitions()) {
-            if (null != flyweight
+            Activity nopActivity = flyweight
                     .getNOPActivityForState(
-                            (DataObjectState) transition.getTarget())) {
-                nopActivities.add(flyweight
-                        .getNOPActivityForState(
-                                (DataObjectState) transition.getTarget()));
+                            (DataObjectState) transition.getTarget());
+            if (null != nopActivity) {
+                nopActivities.add(nopActivity);
+                ControlFlow cf = new ControlFlow(activity, nopActivity);
+                outgoingControlFlow.add(cf);
+                flyweight.addIncomingEdgeFor(nopActivity, cf);
             }
         }
     }
@@ -465,10 +470,10 @@ public class ActivityBuilder {
     /**
      * This method determines if the output sets of different
      * {@link ActivityBuilder} are disjoint.
-     * Therfor it comparse the {@link ObjectLifeCycle} of each
-     * Output Data Object.
+     * Therefore it compares the {@link de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.ObjectLifeCycle}
+     * of each Output Data Object.
      *
-     * @param The ActivityBuilder Object to Compare this Object with.
+     * @param otherActivity The ActivityBuilder Object to Compare this Object with.
      *
      * @return true if both ActivityBuilders have only disjoint outputsets.
      */
@@ -487,10 +492,10 @@ public class ActivityBuilder {
     /**
      * This method determines if the input sets of different
      * {@link ActivityBuilder} are disjoint.
-     * Therfor it comparse the {@link ObjectLifeCycle} of each
-     * Input Data Object.
+     * Therefore it will compare the {@link de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.ObjectLifeCycle}
+     * of each Input Data Object.
      *
-     * @param The ActivityBuilder Object to Compare this Object with.
+     * @param otherActivity The ActivityBuilder Object to Compare this Object with.
      *
      * @return true if both ActivityBuilders have only disjoint input sets.
      */
@@ -507,11 +512,6 @@ public class ActivityBuilder {
     }
 
     /**
-     * This method determines if the successor objects are concurrent.
-     * There fore we will check weather or not
-     */
-
-    /**
      * This method builds the activity, represented by this builder.
      * ControlFlow will be established.
      *
@@ -520,8 +520,11 @@ public class ActivityBuilder {
     public Activity build() {
         assert 1 == incomingControlFlow.size() :
                 "Each activity should have exatly one incoming edge";
-        assert 1 <= outgoingControlFlow.size() :
+        assert outgoingControlFlow == null || 1 >= outgoingControlFlow.size() :
                 "Each activity should have no more than one incoming edge";
+        if (outgoingControlFlow == null) {
+            outgoingControlFlow = new HashSet<>();
+        }
         for (ControlFlow flow : incomingControlFlow) {
             activity.addIncomingEdge(flow);
         }
@@ -533,6 +536,9 @@ public class ActivityBuilder {
 
     public ControlFlow addPredecessor(Event startEvent) {
         ControlFlow incoming = new ControlFlow(startEvent, activity);
+        if (incomingControlFlow == null) {
+            incomingControlFlow = new HashSet<>();
+        }
         incomingControlFlow.add(incoming);
         startEvent.addOutgoingEdge(incoming);
         return incoming;
@@ -540,27 +546,30 @@ public class ActivityBuilder {
 
     public ControlFlow addPredecessor(Gateway gateway) {
         ControlFlow incoming = new ControlFlow(gateway, activity);
+        if (incomingControlFlow == null) {
+            incomingControlFlow = new ArrayList<>();
+        }
         incomingControlFlow.add(incoming);
         gateway.addOutgoingEdge(incoming);
-        INode predeccessor = gateway;
+        INode predecessor = gateway;
         do {
-            predeccessor = gateway.getIncomingEdges().get(0).getSource();
-        } while (predeccessor instanceof Activity ||
-                predeccessor instanceof Event);
-        if (predeccessor instanceof Activity) {
-            predecessors.add(getActivityBuilderForActivity((Activity)predeccessor));
+            predecessor = predecessor.getIncomingEdges().get(0).getSource();
+        } while (!(predecessor instanceof Activity ||
+                predecessor instanceof Event));
+        if (predecessor instanceof Activity) {
+            predecessors.add(getActivityBuilderForActivity((Activity)predecessor));
         }
         return incoming;
     }
 
     /**
      * Returns the ActivityBuilder of an activity by accessing the flyweight object.
-     * @param predeccessor The Activity
+     * @param predecessor The Activity
      * @return The received Activity Builder.
      */
-    private ActivityBuilder getActivityBuilderForActivity(Activity predeccessor) {
+    private ActivityBuilder getActivityBuilderForActivity(Activity predecessor) {
         for (Object builder : flyweight.getActivityBuilders()) {
-            if (((ActivityBuilder)builder).activity.equals(predeccessor)) {
+            if (((ActivityBuilder)builder).activity.equals(predecessor)) {
                 return (ActivityBuilder)builder;
             }
         }
@@ -569,6 +578,9 @@ public class ActivityBuilder {
 
     public ControlFlow addPredecessor(ActivityBuilder builder) {
         ControlFlow incoming = new ControlFlow(builder.activity, this.activity);
+        if (incomingControlFlow == null) {
+            incomingControlFlow = new ArrayList<>();
+        }
         incomingControlFlow.add(incoming);
         predecessors.add(builder);
         if (builder.outgoingControlFlow == null) {
@@ -608,15 +620,15 @@ public class ActivityBuilder {
      * @return A new Collection. Means Changes to the collection will
      * not affect the state of the activity builder.
      */
-    public Collection<ActivityBuilder> getSuccessorActivites() {
-        if (successorActivites == null) {
+    public Collection<ActivityBuilder> getSuccessorActivities() {
+        if (successorActivities == null) {
             initSuccessorActivities();
         }
-        return new HashSet<>(successorActivites);
+        return new HashSet<>(successorActivities);
     }
 
     /**
-     * This mehtod initalizes the list of succesor Activities.
+     * This method initializes the list of successor Activities.
      *
      * Pre: {@link #pets} and {@link #enabledCTs} must be initialized.
      */
@@ -624,31 +636,31 @@ public class ActivityBuilder {
         assert pets != null :  "pets have to be initialized";
         assert enabledCTs != null : "enabledCTs have to be initialized";
         Collection<DataObjectState> states = statesAvailableAfterTermination();
-        successorActivites = new HashSet<>();
+        successorActivities = new HashSet<>();
         for (CombinedTransition ct : enabledCTs) {
-            successorActivites.add(flyweight.getActivityBuilderFor(ct, states));
+            successorActivities.add(flyweight.getActivityBuilderFor(ct, states));
         }
         states = getStatesAfterConcurrentActivities();
-        for (CombinedTransition ct : enabledCTs) {
-            successorActivites.add(flyweight.getActivityBuilderFor(ct, states));
+        for (CombinedTransition ct : pets) {
+            successorActivities.add(flyweight.getActivityBuilderFor(ct, states));
         }
     }
 
     /**
      * Determine outgoing control flow.
      *
-     * Pre: The Successors have to be initlalized.
+     * Pre: The Successors have to be initialized.
      */
-    public void establishOutgoingControlFLow() {
+    public void establishOutgoingControlFlow() {
+        assert successorActivities != null :
+                "The successorActivities have to be initialized";
         if (outgoingControlFlow == null) {
-            outgoingControlFlow = new ArrayList<>();
+            outgoingControlFlow = new HashSet<>();
         }
-        if (nopActivities.size() + successorActivites.size() == 1) {
+        if (nopActivities.size() + successorActivities.size() == 1) {
             if (nopActivities.isEmpty()) {
-                ControlFlow flow = new ControlFlow(this.activity,
-                    successorActivites.iterator().next().activity);
                 outgoingControlFlow.add(
-                        successorActivites.iterator().next().addPredecessor(this));
+                        successorActivities.iterator().next().addPredecessor(this));
             } else {
                 ControlFlow cf = new ControlFlow(activity,
                         nopActivities.iterator().next());
@@ -660,22 +672,26 @@ public class ActivityBuilder {
             Gateway and = new Gateway();
             and.setType(Gateway.Type.AND);
             ControlFlow outgoing = new ControlFlow(activity, and);
-            for (ActivityBuilder successor : successorActivites) {
+            outgoingControlFlow.add(outgoing);
+            for (ActivityBuilder successor : successorActivities) {
                 ControlFlow cf = new ControlFlow(and, successor.activity);
                 successor.incomingControlFlow.add(cf);
+                and.addOutgoingEdge(cf);
             }
             flyweight.getModelUnderConstruction().addNode(and);
         } else {
             Gateway xor = new Gateway();
             xor.setType(Gateway.Type.XOR);
             ControlFlow outgoing = new ControlFlow(activity, xor);
+            xor.addIncomingEdge(outgoing);
+            outgoingControlFlow.add(outgoing);
             for (Activity nopActivity : nopActivities) {
                 ControlFlow cf = new ControlFlow(xor, nopActivity);
                 flyweight.addIncomingEdgeFor(nopActivity, cf);
+                xor.addOutgoingEdge(cf);
             }
-            for (ActivityBuilder successor : successorActivites) {
-                ControlFlow cf = new ControlFlow(xor, successor.activity);
-                successor.incomingControlFlow.add(cf);
+            for (ActivityBuilder successor : successorActivities) {
+                xor.addOutgoingEdge(successor.addPredecessor(xor));
             }
             flyweight.getModelUnderConstruction().addNode(xor);
         }
@@ -689,8 +705,8 @@ public class ActivityBuilder {
      * @return true if they are disjoint else if not.
      */
     private boolean successorsAreDisjoint() {
-        for (ActivityBuilder node1 : successorActivites) {
-            for (ActivityBuilder node2 : successorActivites) {
+        for (ActivityBuilder node1 : successorActivities) {
+            for (ActivityBuilder node2 : successorActivities) {
                 if (!node1.inputSetsAreDisjoint(node2)) {
                     return false;
                 }
@@ -707,7 +723,7 @@ public class ActivityBuilder {
      */
     public void establishIncomingControlFlow() {
         if (incomingControlFlow.size() > 1) {
-            Collection<ControlFlow> newFlow = new ArrayList<>();
+            Collection<ControlFlow> newFlow = new HashSet<>();
             Gateway gateway = new Gateway();
             if (incomingControlFlowHasDisjointDataOutput()) {
                 gateway.setType(Gateway.Type.AND);
@@ -727,10 +743,10 @@ public class ActivityBuilder {
     }
 
     /**
-     * Dertermines if the DataOutputSets of the incoming dataFlow are
+     * Determines if the DataOutputSets of the incoming dataFlow are
      * disjoint.
      *
-     * @return Returns true if the preceeding activities have disjoint
+     * @return Returns true if the preceding activities have disjoint
      * data outputs, false else.
      */
     private boolean incomingControlFlowHasDisjointDataOutput() {

@@ -70,6 +70,8 @@ public class SynchronizedOLCToActivityCentric implements IConverter {
         startEvent.type = Event.Type.START;
         initNodesToBeChecked(flyweight);
         Collection<ActivityBuilder> nodeBuilderNodesChecked = new HashSet<>();
+        flyweight.getModelUnderConstruction().addNode(startEvent);
+        flyweight.getModelUnderConstruction().setStartNode(startEvent);
         boolean exclusive = false;
         if (nodesToBeChecked.size() == 1) {
             nodesToBeChecked.iterator().next().addPredecessor(startEvent);
@@ -109,19 +111,20 @@ public class SynchronizedOLCToActivityCentric implements IConverter {
             nodesToBeChecked.removeAll(nodeBuilderNodesChecked);
             Collection<ActivityBuilder> newNodes = new HashSet<>();
             for (ActivityBuilder activityBuilder : nodesToBeChecked) {
-                activityBuilder.establishOutgoingControlFLow();
-                Collection<ActivityBuilder> successors = activityBuilder.getSuccessorActivites();
+                Collection<ActivityBuilder> successors = activityBuilder.getSuccessorActivities();
+                activityBuilder.establishOutgoingControlFlow();
                 for (ActivityBuilder successor : successors) {
                     if (!successor.isChecked()) {
-                        nodesToBeChecked.add(successor);
+                        newNodes.add(successor);
                     }
                 }
             }
+            nodesToBeChecked.addAll(newNodes);
             for (ActivityBuilder nodeBuilder : nodesToBeChecked) {
                 nodeBuilder.establishIncomingControlFlow();
             }
             for (ActivityBuilder nodeBuilder : nodeBuilderNodesChecked) {
-                nodeBuilder.establishOutgoingControlFLow();
+                nodeBuilder.establishIncomingControlFlow();
             }
         } while (nodesToBeChecked.isEmpty());
         flyweight.finalizeModel();

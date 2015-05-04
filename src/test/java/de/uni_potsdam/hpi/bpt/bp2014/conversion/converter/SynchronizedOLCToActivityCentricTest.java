@@ -212,7 +212,7 @@ public class SynchronizedOLCToActivityCentricTest {
                 start.getOutgoingEdgesOfType(DataFlow.class).isEmpty());
         assertEquals("The Start Event had more or less than one outgoing edge",
                 1, start.getOutgoingEdgesOfType(ControlFlow.class).size());
-        assertTrue("The predecessor of the start event is not an Activity",
+        assertTrue("The successor of the start event is not an Activity",
                 start.getOutgoingEdgesOfType(ControlFlow.class).get(0).getTarget()
                         instanceof Activity);
         activity = (Activity)start.getOutgoingEdgesOfType(ControlFlow.class).get(0).getTarget();

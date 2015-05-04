@@ -62,6 +62,7 @@ public class OLCConversionFlyweight<T extends IModel> {
      */
     private Map<DataObjectState, Activity> nopActivitiesForFinalStates;
 
+    // TODO: Handle these
     private Map<Activity, Collection<ControlFlow>> incomingEdgesOfNOP;
     private Map<CombinedTransition, ActivityBuilder> builderPerCombinedTransition;
 
@@ -286,7 +287,27 @@ public class OLCConversionFlyweight<T extends IModel> {
     public void finalizeModel() {
         Event endEvent = new Event();
         endEvent.setType(Event.Type.END);
+        modelUnderConstruction.addNode(endEvent);
+        modelUnderConstruction.addFinalNode(endEvent);
         Collection<Activity> finalActivities = new HashSet<>();
+        for (Map.Entry<Activity, Collection<ControlFlow>> entry :
+                incomingEdgesOfNOP.entrySet()) {
+            if (entry.getValue().size() == 1) {
+                entry.getKey().addIncomingEdge(
+                        entry.getValue().iterator().next());
+            } else {
+                Gateway xor = new Gateway();
+                xor.setType(Gateway.Type.XOR);
+                for (ControlFlow flow : entry.getValue()) {
+                    flow.setTarget(xor);
+                }
+                ControlFlow incoming = new ControlFlow(xor, entry.getKey());
+                Collection<ControlFlow> incomingFlow = new HashSet<>();
+                incomingFlow.add(incoming);
+                entry.setValue(incomingFlow);
+                entry.getKey().addIncomingEdge(incoming);
+            }
+        }
         for (ActivityBuilder activityBuilder : builderPerCombinedTransition.values()) {
             Activity activity = activityBuilder.build();
             finalActivities.addAll(activityBuilder.getNopActivities());

@@ -81,9 +81,11 @@ public class SynchronizedOLCToActivityCentric implements IConverter {
                 gateway.setType(Gateway.Type.AND);
             } else {
                 gateway.setType(Gateway.Type.XOR);
+                exclusive = true;
             }
             ControlFlow incoming = new ControlFlow(startEvent, gateway);
             gateway.addIncomingEdge(incoming);
+            startEvent.addOutgoingEdge(incoming);
             for (ActivityBuilder activityBuilder : nodesToBeChecked) {
                 activityBuilder.addPredecessor(gateway);
             }
@@ -135,12 +137,12 @@ public class SynchronizedOLCToActivityCentric implements IConverter {
     private boolean nodesToBeCheckedAreDisjoint() {
         for (ActivityBuilder node1 : nodesToBeChecked) {
             for (ActivityBuilder node2 : nodesToBeChecked) {
-                if (!node1.inputSetsAreDisjoint(node2)) {
+                if (!node1.equals(node2) && !node1.inputSetsAreDisjoint(node2)) {
                     return false;
                 }
             }
         }
-        return false;
+        return true;
     }
 
     private void initNodesToBeChecked(

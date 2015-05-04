@@ -297,17 +297,18 @@ public class ActivityBuilder {
      * @param concurrentCTs A Collection of Combined Transitions indicating
      *                      activities which are concurrent to this activity.
      *
-     * Pre: * {@link #flyweight} must have been initalized.
-     *      * {@link #enabledCTs} must have been initalized.
+     * Pre: * {@link #flyweight} must have been initialized.
+     *      * {@link #enabledCTs} must have been initialized.
      */
     public ActivityBuilder findPossibleEnabledCombinedTransitions(
             Collection<CombinedTransition> concurrentCTs) {
-        assert flyweight != null : "The flyweight must be initalized";
-        assert enabledCTs != null : "The enabledCTs must be initlaized";
+        assert flyweight != null : "The flyweight must be initialized";
+        assert enabledCTs != null : "The enabledCTs must be initialized";
         if (this.concurrentCTs == null) {
             assert concurrentCTs != null : "The parameter must not be null.";
             this.concurrentCTs = new HashSet<>(concurrentCTs);
             this.concurrentCTs.remove(this);
+            enabledCTs.removeAll(concurrentCTs);
         }
         Collection<DataObjectState> statesAfterTermination =
                 getStatesAfterConcurrentActivities(this.concurrentCTs);

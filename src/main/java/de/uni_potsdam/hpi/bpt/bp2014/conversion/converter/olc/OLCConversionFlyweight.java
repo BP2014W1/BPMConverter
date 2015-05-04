@@ -137,7 +137,7 @@ public class OLCConversionFlyweight<T extends IModel> {
     private void addNOPActivityForState(DataObjectState state) {
         Activity nop = new Activity("NOP : " + state.getName());
         nopActivitiesForFinalStates.put(state, nop);
-        incomingEdgesOfNOP.put(nop, new ArrayList<>());
+        incomingEdgesOfNOP.put(nop, new ArrayList<ControlFlow>());
     }
 
     /**

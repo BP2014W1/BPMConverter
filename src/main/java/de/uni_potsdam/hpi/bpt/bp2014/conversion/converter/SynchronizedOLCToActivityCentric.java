@@ -1,15 +1,16 @@
 package de.uni_potsdam.hpi.bpt.bp2014.conversion.converter;
 
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IConverter;
-import de.uni_potsdam.hpi.bpt.bp2014.conversion.IEdge;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IModel;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.INode;
-import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.*;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.ActivityCentricProcessModel;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.ControlFlow;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.Event;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.Gateway;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.olc.ActivityBuilder;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.olc.OLCConversionFlyweight;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.DataObjectState;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.ObjectLifeCycle;
-import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.StateTransition;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.synchronize.SynchronizedObjectLifeCycle;
 
 import java.util.*;
@@ -51,6 +52,12 @@ public class SynchronizedOLCToActivityCentric implements IConverter {
             e.printStackTrace();
         };
         return null;
+    }
+
+
+    public ActivityCentricProcessModel convert(SynchronizedObjectLifeCycle sOLC) {
+        synchronizedObjectLifeCycle = sOLC;
+        return convert();
     }
 
     // TODO: Handle start state is final state

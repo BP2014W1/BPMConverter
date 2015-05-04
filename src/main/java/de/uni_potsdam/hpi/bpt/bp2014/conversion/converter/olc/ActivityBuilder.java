@@ -418,8 +418,10 @@ public class ActivityBuilder {
             Collection<DataObjectState> enabledStates) {
         Collection<StateTransition> enabledTransitions = new LinkedList<>();
         for (DataObjectState state : enabledStates) {
-            enabledTransitions.addAll((Collection<? extends StateTransition>)
-                    state.getIncomingEdgesOfType(StateTransition.class));
+            for (IEdge transition :
+                    state.getIncomingEdgesOfType(StateTransition.class)) {
+                enabledTransitions.add((StateTransition) transition);
+            }
         }
         return enabledTransitions;
     }

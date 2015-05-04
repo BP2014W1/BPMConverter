@@ -87,6 +87,7 @@ public class SynchronizedOLCToActivityCentric implements IConverter {
             for (ActivityBuilder activityBuilder : nodesToBeChecked) {
                 activityBuilder.addPredecessor(gateway);
             }
+            flyweight.getModelUnderConstruction().addNode(gateway);
         }
         do {
             Collection<CombinedTransition> concurrentCombinedTransitions =
@@ -126,7 +127,7 @@ public class SynchronizedOLCToActivityCentric implements IConverter {
             for (ActivityBuilder nodeBuilder : nodeBuilderNodesChecked) {
                 nodeBuilder.establishIncomingControlFlow();
             }
-        } while (nodesToBeChecked.isEmpty());
+        } while (!nodesToBeChecked.isEmpty());
         flyweight.finalizeModel();
         return flyweight.getModelUnderConstruction();
     }

@@ -300,12 +300,15 @@ public class OLCConversionFlyweight<T extends IModel> {
                 xor.setType(Gateway.Type.XOR);
                 for (ControlFlow flow : entry.getValue()) {
                     flow.setTarget(xor);
+                    xor.addIncomingEdge(flow);
                 }
                 ControlFlow incoming = new ControlFlow(xor, entry.getKey());
                 Collection<ControlFlow> incomingFlow = new HashSet<>();
+                xor.addOutgoingEdge(incoming);
                 incomingFlow.add(incoming);
                 entry.setValue(incomingFlow);
                 entry.getKey().addIncomingEdge(incoming);
+                modelUnderConstruction.addNode(xor);
             }
         }
         for (ActivityBuilder activityBuilder : builderPerCombinedTransition.values()) {
@@ -315,7 +318,7 @@ public class OLCConversionFlyweight<T extends IModel> {
                 finalActivities.add(activity);
             }
             modelUnderConstruction.addNode(
-                    activity
+                activity
             );
         }
         if (finalActivities.size() == 1) {
@@ -334,8 +337,8 @@ public class OLCConversionFlyweight<T extends IModel> {
             Gateway xor = new Gateway();
             xor.setType(Gateway.Type.XOR);
             for (Activity finalActivity : finalActivities) {
-                if (nopActivitiesForFinalStates.values().contains(finalActivity)) {
-                    IEdge cf = finalActivity.getIncomingEdgesOfType(ControlFlow.class)
+                if (nopActivitiesForFinalStates.values().contains(finalActivity)){
+        IEdge cf = finalActivity.getIncomingEdgesOfType(ControlFlow.class)
                             .iterator().next();
                     cf.setTarget(xor);
                     xor.addIncomingEdge(cf);
@@ -348,6 +351,7 @@ public class OLCConversionFlyweight<T extends IModel> {
             ControlFlow cf = new ControlFlow(xor, endEvent);
             xor.addOutgoingEdge(cf);
             endEvent.addIncomingEdge(cf);
+            modelUnderConstruction.addNode(xor);
         }
     }
 }

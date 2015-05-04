@@ -317,7 +317,6 @@ public class ActivityBuilder {
             if (isPossibleEnabledTransition(ct)) {
                 pets.add(ct);
             }
-            pets.add(ct);
         }
         Collection<CombinedTransition> ctsToBeRemoved = new HashSet<>();
         for (CombinedTransition pet : pets) {
@@ -462,7 +461,7 @@ public class ActivityBuilder {
                 nopActivities.add(nopActivity);
                 ControlFlow cf = new ControlFlow(activity, nopActivity);
                 outgoingControlFlow.add(cf);
-                flyweight.addIncomingEdgeFor(nopActivity, cf);
+                //flyweight.addIncomingEdgeFor(nopActivity, cf);
             }
         }
     }
@@ -673,6 +672,7 @@ public class ActivityBuilder {
             and.setType(Gateway.Type.AND);
             ControlFlow outgoing = new ControlFlow(activity, and);
             outgoingControlFlow.add(outgoing);
+            and.addIncomingEdge(outgoing);
             for (ActivityBuilder successor : successorActivities) {
                 ControlFlow cf = new ControlFlow(and, successor.activity);
                 successor.incomingControlFlow.add(cf);
@@ -684,9 +684,11 @@ public class ActivityBuilder {
             xor.setType(Gateway.Type.XOR);
             ControlFlow outgoing = new ControlFlow(activity, xor);
             xor.addIncomingEdge(outgoing);
+            outgoingControlFlow.clear();
             outgoingControlFlow.add(outgoing);
             for (Activity nopActivity : nopActivities) {
                 ControlFlow cf = new ControlFlow(xor, nopActivity);
+                // FIXME: Maybe the list has to be cleared before
                 flyweight.addIncomingEdgeFor(nopActivity, cf);
                 xor.addOutgoingEdge(cf);
             }
@@ -699,8 +701,8 @@ public class ActivityBuilder {
 
 
     /**
-     * Cheks weather or not the transitions of the ActivityBuilder Objects,
-     * representing the succesors are disjoint or not.
+     * Checks weather or not the transitions of the ActivityBuilder Objects,
+     * representing the successors are disjoint or not.
      *
      * @return true if they are disjoint else if not.
      */

@@ -461,8 +461,9 @@ public class ActivityBuilder {
                             (DataObjectState) transition.getTarget());
             if (null != nopActivity) {
                 nopActivities.add(nopActivity);
-                ControlFlow cf = new ControlFlow(activity, nopActivity);
-                outgoingControlFlow.add(cf);
+//                ControlFlow cf = new ControlFlow(activity, nopActivity);
+//               flyweight.addIncomingEdgeFor(nopActivity, cf);
+//                outgoingControlFlow.add(cf);
                 //flyweight.addIncomingEdgeFor(nopActivity, cf);
             }
         }

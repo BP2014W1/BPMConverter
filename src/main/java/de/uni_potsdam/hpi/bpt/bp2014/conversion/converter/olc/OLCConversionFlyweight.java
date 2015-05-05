@@ -102,7 +102,7 @@ public class OLCConversionFlyweight<T extends IModel> {
     /**
      * This method initializes some fields.
      * All attributes which can be determined based on the synchronized
-     * Object Life Cycle and the model Class will be initalized.
+     * Object Life Cycle and the model Class will be initialized.
      * Except for the {@link #modelUnderConstruction} which will be set
      * from within he constructor.
      */
@@ -113,7 +113,7 @@ public class OLCConversionFlyweight<T extends IModel> {
     }
 
     /**
-     * This methods initalizes {@link #nopActivitiesForFinalStates}.
+     * This methods initializes {@link #nopActivitiesForFinalStates}.
      * All final states of all OLC being part of the synchronized OLC
      * will extracted and an Activity will be created.
      */

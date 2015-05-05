@@ -84,8 +84,8 @@ public class OLCConversionFlyweight<T extends IModel> {
      * @throws IllegalAccessException Constructor can not be called from here.
      * @throws InstantiationException ModelClass could not be instantiated.
      *                                <p/>
-     * Pre: * Both parameter must not be null.
-     *      * The modelClass parameter must be a concrete Implementation.
+     *                                Pre: * Both parameter must not be null.
+     *                                * The modelClass parameter must be a concrete Implementation.
      */
     public OLCConversionFlyweight(SynchronizedObjectLifeCycle sOLC,
                                   Class<T> modelClass)
@@ -318,7 +318,7 @@ public class OLCConversionFlyweight<T extends IModel> {
                 finalActivities.add(activity);
             }
             modelUnderConstruction.addNode(
-                activity
+                    activity
             );
         }
         if (finalActivities.size() == 1) {
@@ -337,8 +337,8 @@ public class OLCConversionFlyweight<T extends IModel> {
             Gateway xor = new Gateway();
             xor.setType(Gateway.Type.XOR);
             for (Activity finalActivity : finalActivities) {
-                if (nopActivitiesForFinalStates.values().contains(finalActivity)){
-        IEdge cf = finalActivity.getIncomingEdgesOfType(ControlFlow.class)
+                if (nopActivitiesForFinalStates.values().contains(finalActivity)) {
+                    IEdge cf = finalActivity.getIncomingEdgesOfType(ControlFlow.class)
                             .iterator().next();
                     cf.setTarget(xor);
                     xor.addIncomingEdge(cf);

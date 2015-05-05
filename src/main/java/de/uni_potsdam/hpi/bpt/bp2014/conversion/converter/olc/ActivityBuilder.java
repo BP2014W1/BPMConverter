@@ -5,13 +5,11 @@ import de.uni_potsdam.hpi.bpt.bp2014.conversion.INode;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.*;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.CombinedTransition;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.DataObjectState;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.ObjectLifeCycle;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.StateTransition;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.synchronize.SynchronizedObjectLifeCycle;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.*;
 
 
 /**
@@ -407,8 +405,25 @@ public class ActivityBuilder {
     private boolean activityEnablesCombinedTransition(CombinedTransition ct) {
         Collection<DataObjectState> statesAfterTermination =
                 statesAvailableAfterTermination();
-        for (StateTransition transition : ct.getTransitions()) {
-            if (!statesAfterTermination.contains(transition.getSource())) {
+        Map<ObjectLifeCycle, List<StateTransition>> transitionsPerOLC =
+                new HashMap<>();
+        for (Map.Entry<StateTransition,ObjectLifeCycle> entry
+                : ct.getTransitionsAndOLCs().entrySet()) {
+            if (transitionsPerOLC.get(entry.getValue()) == null) {
+                transitionsPerOLC.put(entry.getValue(),
+                        new ArrayList<StateTransition>());
+            }
+            transitionsPerOLC.get(entry.getValue()).add(entry.getKey());
+        }
+        for (List<StateTransition> transitions : transitionsPerOLC.values()) {
+            boolean oneIsEnabled = false;
+            for (StateTransition transition : transitions) {
+                if (statesAfterTermination.contains(transition.getSource())) {
+                    oneIsEnabled = true;
+                    break;
+                }
+            }
+            if (!oneIsEnabled) {
                 return false;
             }
         }
@@ -461,10 +476,6 @@ public class ActivityBuilder {
                             (DataObjectState) transition.getTarget());
             if (null != nopActivity) {
                 nopActivities.add(nopActivity);
-//                ControlFlow cf = new ControlFlow(activity, nopActivity);
-//               flyweight.addIncomingEdgeFor(nopActivity, cf);
-//                outgoingControlFlow.add(cf);
-                //flyweight.addIncomingEdgeFor(nopActivity, cf);
             }
         }
     }

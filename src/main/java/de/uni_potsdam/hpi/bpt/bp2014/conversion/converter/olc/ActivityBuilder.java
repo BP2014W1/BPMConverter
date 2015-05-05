@@ -707,7 +707,7 @@ public class ActivityBuilder {
                 xor.addOutgoingEdge(cf);
             }
             for (ActivityBuilder successor : successorActivities) {
-                xor.addOutgoingEdge(successor.addPredecessor(xor));
+                successor.addPredecessor(xor);
             }
             flyweight.getModelUnderConstruction().addNode(xor);
         }

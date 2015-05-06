@@ -58,7 +58,7 @@ public class Gateway implements INode {
     @Override
     public <T extends IEdge> List<T> getIncomingEdgesOfType(Class t) {
         if (t.isAssignableFrom(ControlFlow.class)) {
-            return new ArrayList<>((List<T>)outgoingControlFlow);
+            return new ArrayList<>((List<T>)incomingControlFlow);
         } else {
             return new ArrayList<>();
         }

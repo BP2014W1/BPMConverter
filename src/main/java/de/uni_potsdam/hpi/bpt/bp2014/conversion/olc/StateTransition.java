@@ -59,4 +59,19 @@ public class StateTransition implements IEdge {
                         " combined transitions, hence it must not be null";
         this.label = label;
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == null || !(other instanceof StateTransition)) {
+            return false;
+        }
+        StateTransition otherTransition = (StateTransition)other;
+        return otherTransition.source.equals(source) &&
+                otherTransition.target.equals(target);
+    }
+
+    @Override
+    public int hashCode() {
+        return target.hashCode() + source.hashCode();
+    }
 }

@@ -4,11 +4,13 @@ import de.uni_potsdam.hpi.bpt.bp2014.conversion.IEdge;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.INode;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 public class DataObjectState implements INode {
-    private List<StateTransition> incomingEdges;
-    private List<StateTransition> outgoingEdges;
+    private Collection<StateTransition> incomingEdges;
+    private Collection<StateTransition> outgoingEdges;
     private String name;
 
     public String getName() {
@@ -21,8 +23,8 @@ public class DataObjectState implements INode {
 
     public DataObjectState(String name) {
         this.name = name;
-        incomingEdges = new ArrayList<>();
-        outgoingEdges = new ArrayList<>();
+        incomingEdges = new HashSet<>();
+        outgoingEdges = new HashSet<>();
     }
 
     @Override

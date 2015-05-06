@@ -60,9 +60,15 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
      */
     private Collection<List<INode>> traces;
 
+    /**
+     * This map represent the synchronization edges between the different olcs.
+     */
+    private Map<StateTransition, List<StateTransition>> synchronisationEdges;
+
     public ActivityCentricToSynchronizedOLC() {
         checkedNodes = new HashSet<>();
         loopNodes = new HashSet<>();
+        synchronisationEdges = new HashMap<>();
     }
 
     public IModel convert(ActivityCentricProcessModel acpm) {
@@ -92,13 +98,15 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
                     for (Map.Entry<String, Collection<DataObjectState>> entry
                             : stateCollections.entrySet()) {
                         for (DataObjectState predecessor : entry.getValue()) {
-                            for (DataObjectState successor : currentStates.get(entry.getKey())) {
-                                StateTransition transition =
-                                        new StateTransition(predecessor,
-                                                successor,
-                                                ((Activity)node).getName());
-                                predecessor.addOutgoingEdge(transition);
-                                successor.addIncomingEdge(transition);
+                            if (currentStates.containsKey(entry.getKey())) {
+                                for (DataObjectState successor : currentStates.get(entry.getKey())) {
+                                    StateTransition transition =
+                                            new StateTransition(predecessor,
+                                                    successor,
+                                                    ((Activity) node).getName());
+                                    predecessor.addOutgoingEdge(transition);
+                                    successor.addIncomingEdge(transition);
+                                }
                             }
                         }
                     }
@@ -110,7 +118,7 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
                     // TODO: reduce redundancy
                     currentStates = new HashMap<>();
                     for (IEdge outgoingDF : node.getOutgoingEdgesOfType(DataFlow.class)) {
-                        DataObject dataObject = (DataObject) outgoingDF.getSource();
+                        DataObject dataObject = (DataObject) outgoingDF.getTarget();
                         if (currentStates.get(dataObject.getName()) == null) {
                             currentStates.put(dataObject.getName(),
                                     new HashSet<DataObjectState>());
@@ -120,13 +128,15 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
                     for (Map.Entry<String, Collection<DataObjectState>> entry
                             : stateCollections.entrySet()) {
                         for (DataObjectState predecessor : entry.getValue()) {
-                            for (DataObjectState successor : currentStates.get(entry.getKey())) {
-                                StateTransition transition =
-                                        new StateTransition(predecessor,
-                                                successor,
-                                                ((Activity)node).getName());
-                                predecessor.addOutgoingEdge(transition);
-                                successor.addIncomingEdge(transition);
+                            if (currentStates.containsKey(entry.getKey())) {
+                                for (DataObjectState successor : currentStates.get(entry.getKey())) {
+                                    StateTransition transition =
+                                            new StateTransition(predecessor,
+                                                    successor,
+                                                    ((Activity) node).getName());
+                                    predecessor.addOutgoingEdge(transition);
+                                    successor.addIncomingEdge(transition);
+                                }
                             }
                         }
                     }
@@ -138,17 +148,19 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
                         ((Gateway)node).getType().equals(Gateway.Type.XOR)) {
                     // Currently we do not support edge conditions
                 }
-                for (Map.Entry<ObjectLifeCycle,Collection<DataObjectState>> entry
-                        : dataStatesPerOLC.entrySet()) {
-                    Collection<DataObjectState> finalStates = new HashSet<>();
-                    for (DataObjectState dataObjectState : entry.getValue()) {
-                        entry.getKey().addNode(dataObjectState);
-                        finalStates.add(dataObjectState);
-                    }
-                    for (DataObjectState finalState : finalStates) {
-                        entry.getKey().addFinalNode(finalState);
-                    }
+            }
+        }
+        for (Map.Entry<ObjectLifeCycle,Collection<DataObjectState>> entry
+                : dataStatesPerOLC.entrySet()) {
+            Collection<DataObjectState> finalStates = new HashSet<>();
+            for (DataObjectState dataObjectState : entry.getValue()) {
+                entry.getKey().addNode(dataObjectState);
+                if (dataObjectState.getOutgoingEdges().isEmpty()) {
+                    finalStates.add(dataObjectState);
                 }
+            }
+            for (DataObjectState finalState : finalStates) {
+                entry.getKey().addFinalNode(finalState);
             }
         }
         SynchronizedObjectLifeCycle synchOLC = new SynchronizedObjectLifeCycle();

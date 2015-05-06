@@ -13,6 +13,10 @@ import java.util.*;
  * Created by Stpehan on 01.04.2015.
  */
 public class SynchronizedObjectLifeCycle implements IModel {
+    public void setObjectLifeCycles(List<ObjectLifeCycle> objectLifeCycles) {
+        this.objectLifeCycles = objectLifeCycles;
+    }
+
     private List<ObjectLifeCycle> objectLifeCycles;
 
     public Map<StateTransition, List<StateTransition>> getSynchronisationEdges() {

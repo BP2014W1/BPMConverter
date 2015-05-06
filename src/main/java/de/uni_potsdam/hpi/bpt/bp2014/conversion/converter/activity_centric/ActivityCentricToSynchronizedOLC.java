@@ -136,11 +136,24 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
                     }
                 } else if (node instanceof Gateway &&
                         ((Gateway)node).getType().equals(Gateway.Type.XOR)) {
-
+                    // Currently we do not support edge conditions
+                }
+                for (Map.Entry<ObjectLifeCycle,Collection<DataObjectState>> entry
+                        : dataStatesPerOLC.entrySet()) {
+                    Collection<DataObjectState> finalStates = new HashSet<>();
+                    for (DataObjectState dataObjectState : entry.getValue()) {
+                        entry.getKey().addNode(dataObjectState);
+                        finalStates.add(dataObjectState);
+                    }
+                    for (DataObjectState finalState : finalStates) {
+                        entry.getKey().addFinalNode(finalState);
+                    }
                 }
             }
         }
-        return null;
+        SynchronizedObjectLifeCycle synchOLC = new SynchronizedObjectLifeCycle();
+        synchOLC.setObjectLifeCycles(new LinkedList<ObjectLifeCycle>(olcs));
+        return synchOLC;
     }
 
 

@@ -114,10 +114,32 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
                     }
                     for (Map.Entry<String, Collection<DataObjectState>> entry :
                             currentStates.entrySet()) {
+                        List<StateTransition> links = new ArrayList<>();
+                        for (Map.Entry<String, Collection<DataObjectState>> entry2
+                                : currentStates.entrySet()) {
+                            if (!entry.getKey().equals(entry2.getKey())) {
+                                for (DataObjectState state : entry2.getValue()) {
+                                    for (IEdge transition :
+                                            state.getIncomingEdgesOfType(StateTransition.class)) {
+                                        if (stateCollections.get(entry2.getKey())
+                                                .contains(transition.getSource())) {
+                                            links.add((StateTransition) transition);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        for (DataObjectState state : entry.getValue()) {
+                            for (IEdge transition :
+                                    state.getIncomingEdgesOfType(StateTransition.class)) {
+                                if (stateCollections.get(entry.getKey())
+                                        .contains(transition.getSource())) {
+                                    synchronisationEdges.put((StateTransition) transition, links);
+                                }
+                            }
+                        }
                         stateCollections.put(entry.getKey(), entry.getValue());
                     }
-                    // TODO: establish synchronisation edges
-                    // TODO: reduce redundancy
                     currentStates = new HashMap<>();
                     for (IEdge outgoingDF : node.getOutgoingEdgesOfType(DataFlow.class)) {
                         DataObject dataObject = (DataObject) outgoingDF.getTarget();
@@ -144,6 +166,30 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
                     }
                     for (Map.Entry<String, Collection<DataObjectState>> entry :
                             currentStates.entrySet()) {
+                        List<StateTransition> links = new ArrayList<>();
+                        for (Map.Entry<String, Collection<DataObjectState>> entry2
+                                : currentStates.entrySet()) {
+                            if (!entry.getKey().equals(entry2.getKey())) {
+                                for (DataObjectState state : entry2.getValue()) {
+                                    for (IEdge transition :
+                                            state.getIncomingEdgesOfType(StateTransition.class)) {
+                                        if (stateCollections.get(entry2.getKey())
+                                                .contains(transition.getSource())) {
+                                            links.add((StateTransition) transition);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        for (DataObjectState state : entry.getValue()) {
+                            for (IEdge transition :
+                                    state.getIncomingEdgesOfType(StateTransition.class)) {
+                                if (stateCollections.get(entry.getKey())
+                                        .contains(transition.getSource())) {
+                                    synchronisationEdges.put((StateTransition) transition, links);
+                                }
+                            }
+                        }
                         stateCollections.put(entry.getKey(), entry.getValue());
                     }
                 } else if (node instanceof Gateway &&
@@ -166,7 +212,8 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
             }
         }
         SynchronizedObjectLifeCycle synchOLC = new SynchronizedObjectLifeCycle();
-        synchOLC.setObjectLifeCycles(new LinkedList<ObjectLifeCycle>(olcs));
+        synchOLC.setObjectLifeCycles(new LinkedList<>(olcs));
+        synchOLC.setSynchronisationEdges(synchronisationEdges);
         return synchOLC;
     }
 
@@ -176,7 +223,7 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
      * Therefore it uses a method which is analogue to creating a
      * reachability graph for a petri net.
      *
-     * TODO: Currently this method does allows duplicated traces
+     * TODO: Currently this method allows duplicated traces
      */
     private void extractTraces() {
         Map<List<INode>, Collection<List<INode>>>

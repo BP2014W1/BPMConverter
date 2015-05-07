@@ -58,7 +58,7 @@ public class DataObjectState implements INode {
     @Override
     public <T extends IEdge> List<T> getOutgoingEdgesOfType(Class t) {
         if (t.isAssignableFrom(StateTransition.class) || t.equals(IEdge.class)) {
-            return new ArrayList<T>((List<T>)outgoingEdges);
+            return new ArrayList<T>((Collection<T>)outgoingEdges);
         } else {
             return new ArrayList<T>();
         }
@@ -67,7 +67,7 @@ public class DataObjectState implements INode {
     @Override
     public <T extends IEdge> List<T> getIncomingEdgesOfType(Class t) {
         if (t.isAssignableFrom(StateTransition.class) || t.equals(IEdge.class)) {
-            return new ArrayList<T>((List<T>)incomingEdges);
+            return new ArrayList<T>((Collection<T>)incomingEdges);
         } else {
             return new ArrayList<T>();
         }

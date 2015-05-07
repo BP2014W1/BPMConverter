@@ -95,6 +95,7 @@ public class OLCConversionFlyweight<T extends IModel> {
         assert null != modelClass : "The given class must not be null";
 
         modelUnderConstruction = modelClass.newInstance();
+        builderPerCombinedTransition = new HashMap<>();
         this.sOLC = sOLC;
         init();
     }

@@ -16,19 +16,7 @@ import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.synchronize.SynchronizedObje
 import java.util.*;
 
 public class SynchronizedOLCToActivityCentric implements IConverter {
-    private IModel model;
-    private Collection<INode> uncheckedNodes;
-    private Collection<INode> checkedNodes;
-    private Collection<CombinedTransition> combinedTransitions;
     private SynchronizedObjectLifeCycle synchronizedObjectLifeCycle;
-    private Collection<DataObjectState> enabledStates;
-    private Collection<CombinedTransition> enabledCombinedTransitions;
-    private Collection<CombinedTransition> possibleEnabledCombinedTransitions;
-    private INode currentNode;
-    private Collection<INode> enabledNodes;
-    private List<INode> createdNodes;
-    private Map<INode, List<INode>> nopLists;
-    private Map<INode, CombinedTransition> combinedTransitionPerActivity;
     private Collection<ActivityBuilder> nodesToBeChecked;
 
     /**
@@ -75,6 +63,15 @@ public class SynchronizedOLCToActivityCentric implements IConverter {
         boolean exclusive = false;
         if (nodesToBeChecked.size() == 1) {
             nodesToBeChecked.iterator().next().addPredecessor(startEvent);
+        } else if (nodesToBeChecked.size() < 1) {
+            Event endEvent = new Event();
+            endEvent.setType(Event.Type.END);
+            ControlFlow cf = new ControlFlow(startEvent, endEvent);
+            startEvent.addOutgoingEdge(cf);
+            endEvent.addIncomingEdge(cf);
+            flyweight.getModelUnderConstruction().addFinalNode(endEvent);
+            flyweight.getModelUnderConstruction().addNode(endEvent);
+            return flyweight.getModelUnderConstruction();
         } else {
             Gateway gateway = new Gateway();
             if (nodesToBeCheckedAreDisjoint()) {

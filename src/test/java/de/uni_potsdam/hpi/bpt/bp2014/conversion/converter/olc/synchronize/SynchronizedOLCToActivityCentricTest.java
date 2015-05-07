@@ -1,7 +1,8 @@
-package de.uni_potsdam.hpi.bpt.bp2014.conversion.converter;
+package de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.olc.synchronize;
 
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.INode;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.*;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.SynchronizedOLCToActivityCentric;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.DataObjectState;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.ObjectLifeCycle;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.StateTransition;

@@ -189,4 +189,56 @@ public class ActivityCentricToSynchronizedOLCTest {
         ActivityCentricToSynchronizedOLC acpm2solc = new ActivityCentricToSynchronizedOLC();
         acpm2solc.convert(acpm);
     }
+
+
+    @Test
+    public void testSynchronizedEdges() {
+        ActivityCentricProcessModel acpm = new ActivityCentricProcessModel();
+        Event startEvent = new Event();
+        startEvent.setType(Event.Type.START);
+        Activity activity = new Activity();
+        activity.setName("Do something");
+        Event endEvent = new Event();
+        endEvent.setType(Event.Type.END);
+        ControlFlow cf1 = new ControlFlow(startEvent, activity);
+        startEvent.addOutgoingEdge(cf1);
+        activity.addIncomingEdge(cf1);
+        ControlFlow cf2 = new ControlFlow(activity, endEvent);
+        activity.addOutgoingEdge(cf2);
+        endEvent.addIncomingEdge(cf2);
+        acpm.setStartNode(startEvent);
+        acpm.addNode(startEvent);
+        acpm.addNode(endEvent);
+        acpm.addNode(activity);
+        acpm.addFinalNode(endEvent);
+
+        DataObjectState initInvoice = new DataObjectState("init");
+        DataObjectState initProduct = new DataObjectState("init");
+        DataObjectState sendInvoice = new DataObjectState("send");
+        DataObjectState deliveredProduct = new DataObjectState("delivered");
+        DataObject invoiceInit = new DataObject("Invoice", initInvoice);
+        DataObject invoiceSend = new DataObject("Invoice", sendInvoice);
+        DataObject productInit = new DataObject("Product", initProduct);
+        DataObject productDelivered = new DataObject("Product", deliveredProduct);
+        DataFlow df = new DataFlow(invoiceInit, activity);
+        activity.addIncomingEdge(df);
+        invoiceInit.addOutgoingEdge(df);
+        df = new DataFlow(activity, invoiceSend);
+        invoiceSend.addIncomingEdge(df);
+        activity.addOutgoingEdge(df);
+        df = new DataFlow(productInit, activity);
+        productInit.addOutgoingEdge(df);
+        activity.addIncomingEdge(df);
+        df = new DataFlow(activity, productDelivered);
+        productDelivered.addIncomingEdge(df);
+        activity.addOutgoingEdge(df);
+
+        acpm.addNode(invoiceInit);
+        acpm.addNode(invoiceSend);
+        acpm.addNode(productInit);
+        acpm.addNode(productDelivered);
+
+        ActivityCentricToSynchronizedOLC acpm2solc = new ActivityCentricToSynchronizedOLC();
+        acpm2solc.convert(acpm);
+    }
 }

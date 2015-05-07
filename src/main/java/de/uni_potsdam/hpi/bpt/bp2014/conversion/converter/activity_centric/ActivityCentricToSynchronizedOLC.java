@@ -138,6 +138,10 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
                                 }
                             }
                         }
+                    }
+
+                    for (Map.Entry<String, Collection<DataObjectState>> entry :
+                            currentStates.entrySet()) {
                         stateCollections.put(entry.getKey(), entry.getValue());
                     }
                     currentStates = new HashMap<>();
@@ -190,6 +194,10 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
                                 }
                             }
                         }
+                    }
+
+                    for (Map.Entry<String, Collection<DataObjectState>> entry :
+                            currentStates.entrySet()) {
                         stateCollections.put(entry.getKey(), entry.getValue());
                     }
                 } else if (node instanceof Gateway &&

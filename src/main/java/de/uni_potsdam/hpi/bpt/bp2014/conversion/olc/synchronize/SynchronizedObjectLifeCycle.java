@@ -1,6 +1,5 @@
 package de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.synchronize;
 
-import com.sun.javafx.scene.control.skin.VirtualFlow;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IEdge;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IModel;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.INode;

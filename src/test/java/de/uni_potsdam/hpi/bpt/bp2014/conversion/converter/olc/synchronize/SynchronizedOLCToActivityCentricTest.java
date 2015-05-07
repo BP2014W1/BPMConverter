@@ -168,7 +168,6 @@ public class SynchronizedOLCToActivityCentricTest {
      * When:  Convert the synchronized OLC to an Activity Centric Model
      * Then:  a new Model consisting only of a Start and an End Event, connected by
      *        one Control Flow edge.
-     *        FIXME
      */
     @Test
     public void testConvert() {

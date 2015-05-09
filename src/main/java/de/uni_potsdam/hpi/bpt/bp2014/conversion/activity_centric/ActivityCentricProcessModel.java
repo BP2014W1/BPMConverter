@@ -37,10 +37,10 @@ public class ActivityCentricProcessModel implements IModel {
     }
 
     @Override
-    public <T extends INode> List<T> getNodesOfClass(Class T) {
+    public <T extends INode> List<T> getNodesOfClass(Class clazz) {
         List<T> resultNodes = new ArrayList<>();
         for (INode node : nodes) {
-            if (node.getClass() == T) {
+            if (clazz.isInstance(node)) {
                 resultNodes.add((T)node);
             }
         }

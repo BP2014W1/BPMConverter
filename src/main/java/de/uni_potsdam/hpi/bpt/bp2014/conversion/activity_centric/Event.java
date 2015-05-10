@@ -35,11 +35,11 @@ public class Event implements INode {
     @Override
     public void addOutgoingEdge(IEdge edge) {
         assert type.equals(Type.START) :
-                "Only End Events are allowed to have an outgoing edge";
+                "Only Start Events are allowed to have an outgoing edge";
         assert null != edge :
-                "The outgoing edge of an End Event must nut be null";
+                "The outgoing edge of an Start Event must nut be null";
         assert edge instanceof ControlFlow :
-                "The outgoing edge of an End Event must be Control Flow";
+                "The outgoing edge of an Start Event must be Control Flow";
         this.edge = (ControlFlow)edge;
     }
 

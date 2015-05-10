@@ -270,6 +270,10 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
                     newTracesAndTheirSuccessors = new HashMap<>();
             for (Map.Entry<List<INode>, Collection<List<INode>>>
                     traceAndSuccessors : tracesAndTheirSuccessors.entrySet()) {
+                if (traceAndSuccessors.getValue().isEmpty()) {
+                    newTracesAndTheirSuccessors.put(traceAndSuccessors.getKey(),
+                            traceAndSuccessors.getValue());
+                }
                 for (List<INode> successorGroup : traceAndSuccessors.getValue()) {
                     for (INode successor : successorGroup) {
                         List<INode> trace = new ArrayList<>(traceAndSuccessors.getKey());

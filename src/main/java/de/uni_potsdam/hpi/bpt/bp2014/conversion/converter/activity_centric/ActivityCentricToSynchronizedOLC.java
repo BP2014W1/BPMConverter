@@ -291,9 +291,9 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
             List<INode> previousTrace, List<INode> previousSuccessorGroup, INode predecessor) {
         Collection<List<INode>> successors = new HashSet<>();
         if (!loopNodes.contains(predecessor)) {
-            if (checkedNodes.contains(predecessor)) {
+            if (!(predecessor instanceof Gateway) && checkedNodes.contains(predecessor)) {
                 loopNodes.add(predecessor);
-            } else {
+            } else if (!(predecessor instanceof Gateway)){
                 checkedNodes.add(predecessor);
             }
             List<INode> successorGroup = new LinkedList<>(previousSuccessorGroup);

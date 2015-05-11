@@ -170,7 +170,9 @@ public class ActivityBuilder {
                 name = name + transition.getLabel() + ", ";
             }
         }
-        name = name.substring(0, name.length() - 2);
+        if (name.length() > 2) {
+            name = name.substring(0, name.length() - 2);
+        }
         activity = new Activity(name);
     }
 

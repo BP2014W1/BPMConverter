@@ -1,12 +1,10 @@
 package de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric;
 
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.IEdge;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IModel;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.INode;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 public class ActivityCentricProcessModel implements IModel {
@@ -90,5 +88,13 @@ public class ActivityCentricProcessModel implements IModel {
         } else {
             return new ArrayList<>(0);
         }
+    }
+
+    public List<IEdge> getEdges() {
+        Collection<IEdge> edges = new HashSet<>();
+        for (INode node : nodes) {
+            edges.addAll(node.getOutgoingEdges());
+        }
+        return new ArrayList<IEdge>(edges);
     }
 }

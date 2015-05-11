@@ -354,5 +354,8 @@ public class OLCConversionFlyweight<T extends IModel> {
             endEvent.addIncomingEdge(cf);
             modelUnderConstruction.addNode(xor);
         }
+        for (DataObject dataObject : dataObjectsPerState.values()) {
+            modelUnderConstruction.addNode(dataObject);
+        }
     }
 }

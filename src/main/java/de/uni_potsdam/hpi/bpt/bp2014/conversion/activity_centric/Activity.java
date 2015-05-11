@@ -74,7 +74,7 @@ public class Activity implements INode {
     @Override
     public List<IEdge> getOutgoingEdges() {
         List<IEdge> outgoingEdges = new ArrayList<IEdge>(outgoingControlFlow);
-        outgoingEdges.addAll(incomingDataFlow);
+        outgoingEdges.addAll(outgoingDataFlow);
         return outgoingEdges;
     }
 

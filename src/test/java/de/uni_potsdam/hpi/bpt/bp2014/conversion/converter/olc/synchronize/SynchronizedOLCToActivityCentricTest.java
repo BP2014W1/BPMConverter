@@ -267,14 +267,90 @@ public class SynchronizedOLCToActivityCentricTest {
     public void testSequenceOfTwo() {
         SynchronizedOLCToActivityCentric converter = new SynchronizedOLCToActivityCentric();
         ActivityCentricProcessModel activityCentric = converter.convert(sequenceOfTwo);
-        System.out.println("");
+        assertTrue("First node must be an Event", activityCentric.getStartNode() instanceof Event);
+        assertEquals("First Event must be of Type \"Start\"", Event.Type.START, ((Event) activityCentric.getStartNode()).getType());
+        assertEquals("Start event is only allowed to have one outgoing edge", 1, activityCentric.getStartNode().getOutgoingEdges().size());
+        assertEquals("Start event is only allowed to have one outgoing edge", 0, activityCentric.getStartNode().getIncomingEdges().size());
+        INode currentNode = activityCentric.getStartNode().getOutgoingEdges().iterator().next().getTarget();
+        assertTrue("Second node has to be an Activity", currentNode instanceof Activity);
+        assertEquals("The first Activity should have two Data inputs", 2, currentNode.getIncomingEdgesOfType(DataFlow.class).size());
+        assertEquals("The first Activity should have one incoming control flow", 1, currentNode.getIncomingEdgesOfType(ControlFlow.class).size());
+        assertEquals("The first Activity should have two Data outputs", 2, currentNode.getOutgoingEdgesOfType(DataFlow.class).size());
+        assertEquals("The first Activity should have one outgoing control flow", 1, currentNode.getOutgoingEdgesOfType(ControlFlow.class).size());
+        currentNode = currentNode.getOutgoingEdgesOfType(ControlFlow.class).iterator().next().getTarget();
+        assertTrue("Third node has to be an Activity", currentNode instanceof Activity);
+        assertEquals("The Second Activity should have two Data inputs", 2, currentNode.getIncomingEdgesOfType(DataFlow.class).size());
+        assertEquals("The Second Activity should have one incoming control flow", 1, currentNode.getIncomingEdgesOfType(ControlFlow.class).size());
+        assertEquals("The Second Activity should have two Data outputs", 2, currentNode.getOutgoingEdgesOfType(DataFlow.class).size());
+        assertEquals("The Second Activity should have one outgoing control flow", 1, currentNode.getOutgoingEdgesOfType(ControlFlow.class).size());
+        currentNode = currentNode.getOutgoingEdgesOfType(ControlFlow.class).iterator().next().getTarget();
+        assertTrue("4th node has to be a Gateway", currentNode instanceof Gateway);
+        assertEquals("The 1st Gateway should be a a XOR", Gateway.Type.XOR, ((Gateway) currentNode).getType());
+        assertEquals("The 1st Gateway should have two outgoing control flow", 2, currentNode.getOutgoingEdgesOfType(ControlFlow.class).size());
+        assertEquals("The 1st Gateway should have one incoming control flow", 1, currentNode.getIncomingEdgesOfType(ControlFlow.class).size());
+        currentNode = currentNode.getOutgoingEdgesOfType(ControlFlow.class).iterator().next().getTarget();
+        assertTrue("5th node has to be a Gateway", currentNode instanceof Gateway);
+        assertEquals("The 2nd Gateway should be a a XOR", Gateway.Type.XOR, ((Gateway) currentNode).getType());
+        assertEquals("The 2nd Gateway should have one outgoing control flow", 1, currentNode.getOutgoingEdgesOfType(ControlFlow.class).size());
+        assertEquals("The 2ndt Gateway should have two incoming control flow", 2, currentNode.getIncomingEdgesOfType(ControlFlow.class).size());
+        currentNode = currentNode.getOutgoingEdgesOfType(ControlFlow.class).iterator().next().getTarget();
+        assertTrue("6th node has to be an Event", currentNode instanceof Event);
+        assertEquals("The 2nd Event should be a an END event", Event.Type.END, ((Event) currentNode).getType());
+        assertEquals("The 2nd Event should have one outgoing control flow", 0, currentNode.getOutgoingEdgesOfType(ControlFlow.class).size());
+        assertEquals("The 2ndt Event should have one incoming control flow", 1, currentNode.getIncomingEdgesOfType(ControlFlow.class).size());
     }
 
     @Test
     public void testForkAndMerge() {
         SynchronizedOLCToActivityCentric converter = new SynchronizedOLCToActivityCentric();
         ActivityCentricProcessModel activityCentric = converter.convert(forkAndMerge);
-        System.out.println("");
+        assertTrue("First node must be an Event", activityCentric.getStartNode() instanceof Event);
+        assertEquals("First Event must be of Type \"Start\"", Event.Type.START, ((Event) activityCentric.getStartNode()).getType());
+        assertEquals("Start event is only allowed to have one outgoing edge", 1, activityCentric.getStartNode().getOutgoingEdges().size());
+        assertEquals("Start event is only allowed to have one outgoing edge", 0, activityCentric.getStartNode().getIncomingEdges().size());
+        INode currentNode1 = activityCentric.getStartNode().getOutgoingEdges().iterator().next().getTarget();
+        assertTrue("2nd node has to be a Gateway", currentNode1 instanceof Gateway);
+        assertEquals("The 1st Gateway should be a an AND", Gateway.Type.AND, ((Gateway) currentNode1).getType());
+        assertEquals("The 1st Gateway should have two outgoing control flow", 2, currentNode1.getOutgoingEdgesOfType(ControlFlow.class).size());
+        assertEquals("The 1st Gateway should have one incoming control flow", 1, currentNode1.getIncomingEdgesOfType(ControlFlow.class).size());
+        INode currentNode2 = currentNode1.getOutgoingEdgesOfType(ControlFlow.class).get(1).getTarget();
+        currentNode1 = currentNode1.getOutgoingEdgesOfType(ControlFlow.class).get(0).getTarget();
+        assertTrue("3rd node has to be an Activity", currentNode1 instanceof Activity);
+        assertEquals("The first Activity should have one Data input", 1, currentNode1.getIncomingEdgesOfType(DataFlow.class).size());
+        assertEquals("The first Activity should have one incoming control flow", 1, currentNode1.getIncomingEdgesOfType(ControlFlow.class).size());
+        assertEquals("The first Activity should have one Data output", 1, currentNode1.getOutgoingEdgesOfType(DataFlow.class).size());
+        assertEquals("The first Activity should have one outgoing control flow", 1, currentNode1.getOutgoingEdgesOfType(ControlFlow.class).size());
+        assertTrue("4th node has to be an Activity", currentNode2 instanceof Activity);
+        assertEquals("The second Activity should have one Data input", 1, currentNode2.getIncomingEdgesOfType(DataFlow.class).size());
+        assertEquals("The second Activity should have one incoming control flow", 1, currentNode2.getIncomingEdgesOfType(ControlFlow.class).size());
+        assertEquals("The second Activity should have one Data output", 1, currentNode2.getOutgoingEdgesOfType(DataFlow.class).size());
+        assertEquals("The second Activity should have one outgoing control flow", 1, currentNode2.getOutgoingEdgesOfType(ControlFlow.class).size());
+        currentNode1 = currentNode1.getOutgoingEdgesOfType(ControlFlow.class).iterator().next().getTarget();
+        assertTrue("5th node has to be a Gateway", currentNode1 instanceof Gateway);
+        assertEquals("The 2nd Gateway should be a an AND", Gateway.Type.AND, ((Gateway) currentNode1).getType());
+        assertEquals("The 2nd Gateway should have one outgoing control flow", 1, currentNode1.getOutgoingEdgesOfType(ControlFlow.class).size());
+        assertEquals("The 2nd Gateway should have two incoming control flow", 2, currentNode1.getIncomingEdgesOfType(ControlFlow.class).size());
+        currentNode1 = currentNode1.getOutgoingEdgesOfType(ControlFlow.class).get(0).getTarget();
+        assertTrue("6th node has to be an Activity", currentNode1 instanceof Activity);
+        assertEquals("The 3rd Activity should have one Data input", 2, currentNode1.getIncomingEdgesOfType(DataFlow.class).size());
+        assertEquals("The 3rd Activity should have one incoming control flow", 1, currentNode1.getIncomingEdgesOfType(ControlFlow.class).size());
+        assertEquals("The 3rd Activity should have one Data output", 2, currentNode1.getOutgoingEdgesOfType(DataFlow.class).size());
+        assertEquals("The 3rd Activity should have one outgoing control flow", 1, currentNode1.getOutgoingEdgesOfType(ControlFlow.class).size());
+        currentNode1 = currentNode1.getOutgoingEdgesOfType(ControlFlow.class).iterator().next().getTarget();
+        assertTrue("7th node has to be a Gateway", currentNode1 instanceof Gateway);
+        assertEquals("The 3rd Gateway should be a an XOR", Gateway.Type.XOR, ((Gateway) currentNode1).getType());
+        assertEquals("The 3rd Gateway should have two outgoing control flow", 2, currentNode1.getOutgoingEdgesOfType(ControlFlow.class).size());
+        assertEquals("The 3rd Gateway should have one incoming control flow", 1, currentNode1.getIncomingEdgesOfType(ControlFlow.class).size());
+        currentNode1 = currentNode1.getOutgoingEdgesOfType(ControlFlow.class).iterator().next().getTarget();
+        assertTrue("8th node has to be a Gateway", currentNode1 instanceof Gateway);
+        assertEquals("The 4th Gateway should be a an XOR", Gateway.Type.XOR, ((Gateway) currentNode1).getType());
+        assertEquals("The 4th Gateway should have one outgoing control flow", 1, currentNode1.getOutgoingEdgesOfType(ControlFlow.class).size());
+        assertEquals("The 4th Gateway should have two incoming control flow", 2, currentNode1.getIncomingEdgesOfType(ControlFlow.class).size());
+        currentNode1 = currentNode1.getOutgoingEdgesOfType(ControlFlow.class).iterator().next().getTarget();
+        assertTrue("9th node has to be an Event", currentNode1 instanceof Event);
+        assertEquals("The 2nd Event should be a an END event", Event.Type.END, ((Event) currentNode1).getType());
+        assertEquals("The 2nd Event should have one outgoing control flow", 0, currentNode1.getOutgoingEdgesOfType(ControlFlow.class).size());
+        assertEquals("The 2ndt Event should have one incoming control flow", 1, currentNode1.getIncomingEdgesOfType(ControlFlow.class).size());
     }
 
     @Test

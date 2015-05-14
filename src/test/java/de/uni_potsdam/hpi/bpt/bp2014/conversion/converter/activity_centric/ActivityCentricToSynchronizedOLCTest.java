@@ -1,11 +1,29 @@
 package de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.activity_centric;
 
-
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.*;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.DataObjectState;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.ObjectLifeCycle;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.StateTransition;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.synchronize.SynchronizedObjectLifeCycle;
 import org.junit.Test;
 
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+
 public class ActivityCentricToSynchronizedOLCTest {
+    /**
+     * Given: is a small activity centric Process model.
+     *        The models consists of a start event, an
+     *        activity and an end event. There is no Data
+     *        Flow.
+     * When:  You generate a synchronized Object Life Cycle
+     *        based on this activity centric process model
+     * Then:  an {@link de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.synchronize.SynchronizedObjectLifeCycle}
+     *        with no {@link de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.ObjectLifeCycle}
+     *        will be created.
+     */
     @Test
     public void testSequence() {
         ActivityCentricProcessModel acpm = new ActivityCentricProcessModel();
@@ -27,8 +45,23 @@ public class ActivityCentricToSynchronizedOLCTest {
         acpm.addNode(activity);
         acpm.addFinalNode(endEvent);
         ActivityCentricToSynchronizedOLC acpm2solc = new ActivityCentricToSynchronizedOLC();
-        acpm2solc.convert(acpm);
+        SynchronizedObjectLifeCycle solc = (SynchronizedObjectLifeCycle) acpm2solc.convert(acpm);
+        assertTrue("There should be now Object Life Cycles.", solc.getOLCs().isEmpty());
+        assertNull("There should be no startNode.", solc.getStartNode());
+        assertTrue("There should be no final node.", solc.getFinalStates().isEmpty());
+        assertTrue("There should be no final node.", solc.getSynchronisationEdges().isEmpty());
     }
+
+
+
+    /**
+     * Given: A simple {@link ActivityCentricProcessModel}
+     *        it consists of two activities which are exclusive.
+     *        (Between a split and a merge)
+     * When:  You generate a {@link SynchronizedObjectLifeCycle}
+     * Then:  The {@link SynchronizedObjectLifeCycle} Object
+     *        should contain no {@link ObjectLifeCycle}
+     */
     @Test
     public void testXOR() {
         ActivityCentricProcessModel acpm = new ActivityCentricProcessModel();
@@ -70,10 +103,22 @@ public class ActivityCentricToSynchronizedOLCTest {
         acpm.addNode(activity);
         acpm.addFinalNode(endEvent);
         ActivityCentricToSynchronizedOLC acpm2solc = new ActivityCentricToSynchronizedOLC();
-        acpm2solc.convert(acpm);
+        SynchronizedObjectLifeCycle solc = (SynchronizedObjectLifeCycle) acpm2solc.convert(acpm);
+        assertTrue("There should be now Object Life Cycles.", solc.getOLCs().isEmpty());
+        assertNull("There should be no startNode.", solc.getStartNode());
+        assertTrue("There should be no final node.", solc.getFinalStates().isEmpty());
+        assertTrue("There should be no final node.", solc.getSynchronisationEdges().isEmpty());
     }
 
 
+    /**
+     * Given: Is a simple Activity Centric Process model
+     *        with to concurrent activities (between fork
+     *        and join) without dataflow.
+     * When:  You convert this model into an {@link SynchronizedObjectLifeCycle}
+     * Then:  1. No exception should be thrown
+     *        2. The SynchronizedObjectLifeCycle object should contain no {@link ObjectLifeCycle}
+     */
     @Test
     public void testAND() {
         ActivityCentricProcessModel acpm = new ActivityCentricProcessModel();
@@ -115,10 +160,24 @@ public class ActivityCentricToSynchronizedOLCTest {
         acpm.addNode(activity);
         acpm.addFinalNode(endEvent);
         ActivityCentricToSynchronizedOLC acpm2solc = new ActivityCentricToSynchronizedOLC();
-        acpm2solc.convert(acpm);
+        SynchronizedObjectLifeCycle solc = (SynchronizedObjectLifeCycle) acpm2solc.convert(acpm);
+        assertTrue("There should be now Object Life Cycles.", solc.getOLCs().isEmpty());
+        assertNull("There should be no startNode.", solc.getStartNode());
+        assertTrue("There should be no final node.", solc.getFinalStates().isEmpty());
+        assertTrue("There should be no final node.", solc.getSynchronisationEdges().isEmpty());
     }
 
 
+    /**
+     * Given: Is an Activity centric process model.
+     *        It consists of two concurrent Activities.
+     *        With each one data input and one data output.
+     *        There are two different DataObjects.
+     * When:  This model is transformed into an {@link SynchronizedObjectLifeCycle}
+     * Then:  The generated Model will consist of
+     *        two Object life cycles with two States
+     *        each.
+     */
     @Test
     public void testDataObjects() {
         ActivityCentricProcessModel acpm = new ActivityCentricProcessModel();
@@ -187,10 +246,65 @@ public class ActivityCentricToSynchronizedOLCTest {
         acpm.addNode(productDelivered);
 
         ActivityCentricToSynchronizedOLC acpm2solc = new ActivityCentricToSynchronizedOLC();
-        acpm2solc.convert(acpm);
+        SynchronizedObjectLifeCycle solc = (SynchronizedObjectLifeCycle) acpm2solc.convert(acpm);
+        assertEquals("There should be 2 Object Life Cycles.", 2, solc.getOLCs().size());
+        assertNull("There should be no startNode.", solc.getStartNode());
+        assertFalse("There should be more than one final node.", solc.getFinalStates().isEmpty());
+        assertEquals("There should be four synchronization Edge.", 4, solc.getSynchronisationEdges().size());
+        assertEquals("The sum of the Nodes in two Models should be 6", 6, solc.getNodes().size());
+        assertEquals("The 1st synchronized OLC should have 3 nodes", 3, solc.getOLCs().get(0).getNodes().size());
+        assertEquals("The 2nd synchronized OLC should have 3 nodes", 3, solc.getOLCs().get(1).getNodes().size());
+        assertTrue("There should be one \"Invoice\" and one \"Product\" olc",
+                (solc.getOLCs().get(0).getLabel().equals("Invoice") && solc.getOLCs().get(1).getLabel().equals("Product")) ||
+                        (solc.getOLCs().get(1).getLabel().equals("Invoice") && solc.getOLCs().get(0).getLabel().equals("Product")));
+        ObjectLifeCycle invoiceOLC;
+        ObjectLifeCycle productOLC;
+        if (solc.getOLCs().get(0).getLabel().equals("Invoice")) {
+            invoiceOLC = solc.getOLCs().get(0);
+            productOLC = solc.getOLCs().get(1);
+        } else {
+            invoiceOLC = solc.getOLCs().get(1);
+            productOLC = solc.getOLCs().get(0);
+        }
+
+        // Check Object Life Cycle of Invoice
+        DataObjectState currentNode = (DataObjectState)invoiceOLC.getStartNode();
+        assertEquals("The 1st node should be the pseudo node \"i\"", "i", currentNode.getName());
+        assertEquals("the 1st node should have exactly one outgoing edge", 1, currentNode.getOutgoingEdges().size());
+        assertEquals("The 1st transition should be labeled with \"t\" this indicates a silent transition", "t", ((StateTransition)currentNode.getOutgoingEdges().get(0)).getLabel());
+        currentNode = (DataObjectState) currentNode.getOutgoingEdges().iterator().next().getTarget();
+        assertEquals("The 2nd node should be the state \"init\"", "init", currentNode.getName());
+        assertEquals("the 2nd node should have exactly one outgoing edge", 1, currentNode.getOutgoingEdges().size());
+        assertEquals("The 2nd transition should be labeled with \"send\"", "Deliver Product", ((StateTransition)currentNode.getOutgoingEdges().get(0)).getLabel());
+        currentNode = (DataObjectState) currentNode.getOutgoingEdges().iterator().next().getTarget();
+        assertEquals("The 3rd node should be the state \"send\"", "send", currentNode.getName());
+        assertTrue("the 3rd node should have no outgoing edge", currentNode.getOutgoingEdges().isEmpty());
+
+        // Check Object Life Cycle of Invoice
+        currentNode = (DataObjectState)productOLC.getStartNode();
+        assertEquals("The 1st node should be the pseudo node \"i\"", "i", currentNode.getName());
+        assertEquals("the 1st node should have exactly one outgoing edge", 1, currentNode.getOutgoingEdges().size());
+        assertEquals("The 1st transition should be labeled with \"t\" this indicates a silent transition", "t", ((StateTransition)currentNode.getOutgoingEdges().get(0)).getLabel());
+        currentNode = (DataObjectState) currentNode.getOutgoingEdges().iterator().next().getTarget();
+        assertEquals("The 2nd node should be the state \"init\"", "init", currentNode.getName());
+        assertEquals("the 2nd node should have exactly one outgoing edge", 1, currentNode.getOutgoingEdges().size());
+        assertEquals("The 2nd transition should be labeled with \"deliver\"", "Send Invoice", ((StateTransition) currentNode.getOutgoingEdges().get(0)).getLabel());
+        currentNode = (DataObjectState) currentNode.getOutgoingEdges().iterator().next().getTarget();
+        assertEquals("The 3rd node should be the state \"delivered\"", "delivered", currentNode.getName());
+        assertTrue("the 3rd node should have no outgoing edge", currentNode.getOutgoingEdges().isEmpty());
     }
 
 
+    /**
+     * Given: A {@link ActivityCentricProcessModel} with
+     *        * One Activity (Do something)
+     *        * with two in- and output DataObjects
+     *        * and a start and end event.
+     * When:  Transform this model into an {@link SynchronizedObjectLifeCycle}
+     * Then:  There should be a synchronized OLC with
+     *        * two OLCs
+     *        * Synchronized via two edges (t and do something)
+     */
     @Test
     public void testSynchronizedEdges() {
         ActivityCentricProcessModel acpm = new ActivityCentricProcessModel();
@@ -239,6 +353,57 @@ public class ActivityCentricToSynchronizedOLCTest {
         acpm.addNode(productDelivered);
 
         ActivityCentricToSynchronizedOLC acpm2solc = new ActivityCentricToSynchronizedOLC();
-        acpm2solc.convert(acpm);
+        SynchronizedObjectLifeCycle solc = (SynchronizedObjectLifeCycle) acpm2solc.convert(acpm);
+        assertEquals("There should be 2 Object Life Cycles.", 2, solc.getOLCs().size());
+        assertNull("There should be no startNode.", solc.getStartNode());
+        assertFalse("There should be more than one final node.", solc.getFinalStates().isEmpty());
+        assertEquals("There should be four synchronization Edge.", 4, solc.getSynchronisationEdges().size());
+        assertEquals("The sum of the Nodes in two Models should be 6", 6, solc.getNodes().size());
+        assertEquals("The 1st synchronized OLC should have 3 nodes", 3, solc.getOLCs().get(0).getNodes().size());
+        assertEquals("The 2nd synchronized OLC should have 3 nodes", 3, solc.getOLCs().get(1).getNodes().size());
+        assertTrue("There should be one \"Invoice\" and one \"Product\" olc",
+                (solc.getOLCs().get(0).getLabel().equals("Invoice") && solc.getOLCs().get(1).getLabel().equals("Product")) ||
+                        (solc.getOLCs().get(1).getLabel().equals("Invoice") && solc.getOLCs().get(0).getLabel().equals("Product")));
+        ObjectLifeCycle invoiceOLC;
+        ObjectLifeCycle productOLC;
+        if (solc.getOLCs().get(0).getLabel().equals("Invoice")) {
+            invoiceOLC = solc.getOLCs().get(0);
+            productOLC = solc.getOLCs().get(1);
+        } else {
+            invoiceOLC = solc.getOLCs().get(1);
+            productOLC = solc.getOLCs().get(0);
+        }
+
+        // Check Object Life Cycle of Invoice
+        DataObjectState currentNode = (DataObjectState)invoiceOLC.getStartNode();
+        assertEquals("The 1st node should be the pseudo node \"i\"", "i", currentNode.getName());
+        assertEquals("the 1st node should have exactly one outgoing edge", 1, currentNode.getOutgoingEdges().size());
+        assertEquals("The 1st transition should be labeled with \"t\" this indicates a silent transition", "t", ((StateTransition)currentNode.getOutgoingEdges().get(0)).getLabel());
+        currentNode = (DataObjectState) currentNode.getOutgoingEdges().iterator().next().getTarget();
+        assertEquals("The 2nd node should be the state \"init\"", "init", currentNode.getName());
+        assertEquals("the 2nd node should have exactly one outgoing edge", 1, currentNode.getOutgoingEdges().size());
+        assertEquals("The 2nd transition should be labeled with \"Do something\"", "Do something", ((StateTransition)currentNode.getOutgoingEdges().get(0)).getLabel());
+        currentNode = (DataObjectState) currentNode.getOutgoingEdges().iterator().next().getTarget();
+        assertEquals("The 3rd node should be the state \"send\"", "send", currentNode.getName());
+        assertTrue("the 3rd node should have no outgoing edge", currentNode.getOutgoingEdges().isEmpty());
+
+        // Check Object Life Cycle of Invoice
+        currentNode = (DataObjectState)productOLC.getStartNode();
+        assertEquals("The 1st node should be the pseudo node \"i\"", "i", currentNode.getName());
+        assertEquals("the 1st node should have exactly one outgoing edge", 1, currentNode.getOutgoingEdges().size());
+        assertEquals("The 1st transition should be labeled with \"t\" this indicates a silent transition", "t", ((StateTransition)currentNode.getOutgoingEdges().get(0)).getLabel());
+        currentNode = (DataObjectState) currentNode.getOutgoingEdges().iterator().next().getTarget();
+        assertEquals("The 2nd node should be the state \"init\"", "init", currentNode.getName());
+        assertEquals("the 2nd node should have exactly one outgoing edge", 1, currentNode.getOutgoingEdges().size());
+        assertEquals("The 2nd transition should be labeled with \"Do something\"", "Do something", ((StateTransition) currentNode.getOutgoingEdges().get(0)).getLabel());
+        currentNode = (DataObjectState) currentNode.getOutgoingEdges().iterator().next().getTarget();
+        assertEquals("The 3rd node should be the state \"delivered\"", "delivered", currentNode.getName());
+        assertTrue("the 3rd node should have no outgoing edge", currentNode.getOutgoingEdges().isEmpty());
+
+        for (Map.Entry<StateTransition, List<StateTransition>> stateTransitionListEntry : solc.getSynchronisationEdges().entrySet()) {
+            for (StateTransition transition : stateTransitionListEntry.getValue()) {
+                assertEquals("The Transitions are not synchronized correctly", stateTransitionListEntry.getKey().getLabel(), transition.getLabel());
+            }
+        }
     }
 }

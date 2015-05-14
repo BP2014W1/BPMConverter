@@ -401,6 +401,7 @@ public class ActivityCentricToSynchronizedOLCTest {
         assertTrue("the 3rd node should have no outgoing edge", currentNode.getOutgoingEdges().isEmpty());
 
         for (Map.Entry<StateTransition, List<StateTransition>> stateTransitionListEntry : solc.getSynchronisationEdges().entrySet()) {
+            assertEquals("Their should be only one synchronization Edge per Edge", 1, stateTransitionListEntry.getValue().size());
             for (StateTransition transition : stateTransitionListEntry.getValue()) {
                 assertEquals("The Transitions are not synchronized correctly", stateTransitionListEntry.getKey().getLabel(), transition.getLabel());
             }

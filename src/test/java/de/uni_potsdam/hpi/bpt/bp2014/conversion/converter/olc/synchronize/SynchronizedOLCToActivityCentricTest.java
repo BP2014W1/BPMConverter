@@ -387,7 +387,8 @@ public class SynchronizedOLCToActivityCentricTest {
         assertEquals("The 2nd and 3rd Gateway should have one outgoing control flow", 3, currentNode1.getOutgoingEdgesOfType(ControlFlow.class).size() +
                 currentNode2.getOutgoingEdgesOfType(ControlFlow.class).size());
         assertEquals("The 2nd and 3rd Gateway should have two incoming control flow", 3, currentNode1.getIncomingEdgesOfType(ControlFlow.class).size() + currentNode2.getIncomingEdgesOfType(ControlFlow.class).size());
-        currentNode1 = currentNode1.getOutgoingEdgesOfType(ControlFlow.class).get(0).getTarget();
+        currentNode1 = (currentNode1.getOutgoingEdges().size() == 1 ? currentNode1 : currentNode2)
+                .getOutgoingEdges().get(0).getTarget();
         assertTrue("7th node has to be an Activity", currentNode1 instanceof Activity);
         assertEquals("The 3rd Activity should have one Data input", 2, currentNode1.getIncomingEdgesOfType(DataFlow.class).size());
         assertEquals("The 3rd Activity should have one incoming control flow", 1, currentNode1.getIncomingEdgesOfType(ControlFlow.class).size());

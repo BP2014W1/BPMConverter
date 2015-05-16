@@ -1,4 +1,4 @@
-package de.uni_potsdam.hpi.bpt.bp2014.conversion.converter;
+package de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.olc;
 
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IConverter;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IModel;
@@ -7,6 +7,7 @@ import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.ActivityCentric
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.ControlFlow;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.Event;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.Gateway;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.CombinedTransition;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.olc.ActivityBuilder;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.olc.OLCConversionFlyweight;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.DataObjectState;

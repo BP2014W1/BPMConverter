@@ -62,7 +62,6 @@ public class OLCConversionFlyweight<T extends IModel> {
      */
     private Map<DataObjectState, Activity> nopActivitiesForFinalStates;
 
-    // TODO: Handle these
     private Map<Activity, Collection<ControlFlow>> incomingEdgesOfNOP;
     private Map<CombinedTransition, ActivityBuilder> builderPerCombinedTransition;
 
@@ -168,6 +167,7 @@ public class OLCConversionFlyweight<T extends IModel> {
      * will be group.
      * In future versions the synchronized Edges should be used.
      * TODO: Use synchronized transitions instead
+     * TODO: What happens if there are synchronized edges in one OLC?
      */
     private void initCombinedTransitions() {
         combinedTransitions = new ArrayList<>();

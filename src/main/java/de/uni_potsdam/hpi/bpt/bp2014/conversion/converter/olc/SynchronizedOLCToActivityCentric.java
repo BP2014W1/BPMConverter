@@ -49,7 +49,6 @@ public class SynchronizedOLCToActivityCentric implements IConverter {
         return convert();
     }
 
-    // TODO: Handle start state is final state
     public ActivityCentricProcessModel olcToACP(SynchronizedObjectLifeCycle sOLC)
             throws InstantiationException, IllegalAccessException {
         OLCConversionFlyweight<ActivityCentricProcessModel> flyweight =

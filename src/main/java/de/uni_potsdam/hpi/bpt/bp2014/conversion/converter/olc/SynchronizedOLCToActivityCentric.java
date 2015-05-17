@@ -27,7 +27,7 @@ public class SynchronizedOLCToActivityCentric implements IConverter {
      * Other attributes of this class will be initialized and changed
      * during that process.
      * You may not manipulate this process.
-     * The converion is an implementation of the algorithm described
+     * The conversion is an implementation of the algorithm described
      * in {@see http://bpt.hpi.uni-potsdam.de/pub/Public/AndreasMeyer/Technical_Report_Activity-centric_and_Artifact-centric_Process_Model_Roundtrip.pdf}.
      *
      * @return The generated ActivityCentricProcessModel.

@@ -16,8 +16,8 @@ public class FragmentsFromOLCVersions {
 
     private Collection<? extends ObjectLifeCycle> groupedOLCs;
 
-    public Collection<ActivityCentricProcessModel> convert(Collection<ObjectLifeCycle> oldOLCs,
-                                                           Collection<ObjectLifeCycle> newOLCs) {
+    public Collection<ActivityCentricProcessModel> convert(Collection<? extends ObjectLifeCycle> oldOLCs,
+                                                           Collection<? extends ObjectLifeCycle> newOLCs) {
         Collection<ActivityCentricProcessModel> acpms = new HashSet<>();
         this.groupedOLCs = groupOLCVersions(oldOLCs, newOLCs);
         SynchronizedObjectLifeCycle diffSynchronizedOLC = new SynchronizedObjectLifeCycle();
@@ -76,8 +76,8 @@ public class FragmentsFromOLCVersions {
     }
 
     private Collection<ObjectLifeCycleDiff> groupOLCVersions(
-            Collection<ObjectLifeCycle> oldOLCs,
-            Collection<ObjectLifeCycle> newOLCs) {
+            Collection<? extends ObjectLifeCycle> oldOLCs,
+            Collection<? extends ObjectLifeCycle> newOLCs) {
         Map<String, ObjectLifeCycle> newGrouped = new HashMap<>();
         Map<String, ObjectLifeCycle> oldGrouped = new HashMap<>();
         Collection<ObjectLifeCycleDiff> grouped = new HashSet<>();

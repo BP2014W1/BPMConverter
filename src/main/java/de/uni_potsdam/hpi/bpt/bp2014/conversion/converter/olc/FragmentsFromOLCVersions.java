@@ -14,7 +14,7 @@ import java.util.*;
  */
 public class FragmentsFromOLCVersions {
 
-    private Collection<ObjectLifeCycleDiff> groupedOLCs;
+    private Collection<? extends ObjectLifeCycle> groupedOLCs;
 
     public Collection<ActivityCentricProcessModel> convert(Collection<ObjectLifeCycle> oldOLCs,
                                                            Collection<ObjectLifeCycle> newOLCs) {

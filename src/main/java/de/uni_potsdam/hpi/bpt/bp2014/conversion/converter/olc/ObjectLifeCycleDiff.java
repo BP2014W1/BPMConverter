@@ -20,6 +20,7 @@ public class ObjectLifeCycleDiff extends ObjectLifeCycle {
         assert oldOLC != null : "The olcs to be compared should not be null";
         this.newOLC = newOLC;
         this.oldOLC = oldOLC;
+        initialize();
     }
 
     public ObjectLifeCycleDiff() {

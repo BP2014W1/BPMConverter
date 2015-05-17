@@ -32,7 +32,7 @@ public class FragmentsFromOLCVersions {
             e.printStackTrace();
         }
         for (CombinedTransition combinedTransition : flyweight.getCombinedTransitions()) {
-            createFragment(combinedTransition);
+            acpms.add(createFragment(combinedTransition));
         }
         return acpms;
     }
@@ -50,6 +50,12 @@ public class FragmentsFromOLCVersions {
         acpm.addNode(activity);
         acpm.addNode(endEvent);
         acpm.addFinalNode(endEvent);
+        ControlFlow cf = new ControlFlow(startEvent, activity);
+        startEvent.addOutgoingEdge(cf);
+        activity.addIncomingEdge(cf);
+        cf = new ControlFlow(activity, endEvent);
+        activity.addOutgoingEdge(cf);
+        endEvent.addIncomingEdge(cf);
         for (Map.Entry<StateTransition, ObjectLifeCycle> transitionAndOLC :
                 combinedTransition.getTransitionsAndOLCs().entrySet()) {
             if (!name.contains(transitionAndOLC.getKey().getLabel())) {

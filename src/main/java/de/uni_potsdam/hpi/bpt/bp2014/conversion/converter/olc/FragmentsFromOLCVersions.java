@@ -59,7 +59,7 @@ public class FragmentsFromOLCVersions {
         for (Map.Entry<StateTransition, ObjectLifeCycle> transitionAndOLC :
                 combinedTransition.getTransitionsAndOLCs().entrySet()) {
             if (!name.contains(transitionAndOLC.getKey().getLabel())) {
-                name = name + ", " + transitionAndOLC.getKey().getLabel();
+                name = name + transitionAndOLC.getKey().getLabel() +  ", ";
             }
             DataObject input = new DataObject(transitionAndOLC.getValue().getLabel(),
                     (DataObjectState) transitionAndOLC.getKey().getSource());
@@ -75,7 +75,7 @@ public class FragmentsFromOLCVersions {
             acpm.addNode(output);
         }
         if (name.length() >= 2) {
-            name.substring(0, name.length() - 2);
+            name = name.substring(0, name.length() - 2);
         }
         activity.setName(name);
         return acpm;

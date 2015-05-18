@@ -187,9 +187,17 @@ public class ActivityBuilder {
         assert activity != null : "The activity has to be initialized first";
         incomingDataFlow = new HashSet<>();
         outgoingDataFlow = new HashSet<>();
+        Collection<DataObjectState> inputStates = new HashSet<>();
+        Collection<DataObjectState> outputStates = new HashSet<>();
         for (StateTransition transition : ctExecuted.getTransitions()) {
-            addIncomingDataFlow((DataObjectState) transition.getSource());
-            addOutgoingDataFlow((DataObjectState) transition.getTarget());
+            inputStates.add((DataObjectState) transition.getSource());
+            outputStates.add((DataObjectState) transition.getTarget());
+        }
+        for (DataObjectState inputState : inputStates) {
+            addIncomingDataFlow((DataObjectState) inputState);
+        }
+        for (DataObjectState outputState : outputStates) {
+            addOutgoingDataFlow((DataObjectState) outputState);
         }
     }
 

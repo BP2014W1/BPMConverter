@@ -1,4 +1,4 @@
-package de.uni_potsdam.hpi.bpt.bp2014.conversion.converter;
+package de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.synchronize;
 
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.DataObjectState;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.ObjectLifeCycle;

@@ -10,12 +10,39 @@ import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.synchronize.SynchronizedObje
 
 import java.util.*;
 
+/**
+ * This class is a converter, which generates a {@link SynchronizedObjectLifeCycle}
+ * based on a PCM Scenario. A PCM scenario is an aggregation of {@link ActivityCentricProcessModel}.
+ * Hence a List of those models - called fragments - must be provided.
+ */
 public class ScenarioToSynchronizedOLC {
 
+    /**
+     * The list of fragments representing the Production Case Management Scenario.
+     */
     private Collection<ActivityCentricProcessModel> fragments;
+    /**
+     * A map which maps the Data Object names to a Collection of Object Life cycles.
+     * There will be at least one ObjectLifeCycles and not more thant #{@link #fragments}
+     */
     private Map<String, Collection<ObjectLifeCycle>> olcsPerDataClass;
-    private HashSet<ObjectLifeCycle> olcs;
+    /**
+     * A Collection holding the final Object Life Cycles which will be needed in order to
+     * build the synchronized object lfie cycle.
+     */
+    private Collection<ObjectLifeCycle> olcs;
 
+    /**
+     * This method generates an {@link SynchronizedObjectLifeCycle} based on a a Collection
+     * of {@link ActivityCentricProcessModel}.
+     * First of all the Collections {@link #fragments}, {@link #olcsPerDataClass} and
+     * {@link #olcs} will be initialized.
+     * Afterward we will generate Object Life Cycles for each Activity Centric Process Model.
+     * Before creating an Object Life Cycle we will integrate the created OLCs.
+     *
+     * @param fragments The list of fragments representing the PCM Scenario.
+     * @return The generated Synchronized Object Life Cycle.
+     */
     public SynchronizedObjectLifeCycle convert(Collection<ActivityCentricProcessModel> fragments) {
         this.fragments = fragments;
         olcsPerDataClass = new HashMap<>();
@@ -29,8 +56,13 @@ public class ScenarioToSynchronizedOLC {
         return sOLC;
     }
 
-
-
+    /**
+     * This method generates the Object Life Cycles.
+     * it will create object life cycles for each data object in each fragment.
+     * Therefore it used the Converter {@link ActivityCentricToSynchronizedOLC}
+     * and extracts the object life cycles from the {@link SynchronizedObjectLifeCycle}.
+     * They will be saved inside {@link #olcsPerDataClass}.
+     */
     private void generateObjectLifeCycles() {
         for (ActivityCentricProcessModel fragment : fragments) {
             ActivityCentricToSynchronizedOLC acpm2solc = new ActivityCentricToSynchronizedOLC();
@@ -43,9 +75,12 @@ public class ScenarioToSynchronizedOLC {
             }
         }
     }
-
-
-
+    /**
+     * This method takes the Object life cycles inside {@link #olcsPerDataClass}
+     * and creates one olc per data class.
+     * We assume that the start state will be called init.
+     * As well as that the final states will have no outgoing edges.
+     */
     private void integrateStates() {
         for (Map.Entry<String, Collection<ObjectLifeCycle>> olcsAndName : olcsPerDataClass.entrySet()) {
             Map<DataObjectState, Collection<StateTransition>> successors = new HashMap<>();
@@ -91,7 +126,15 @@ public class ScenarioToSynchronizedOLC {
     }
 
 
-
+    /**
+     * Checks weather or not a transition already exists. A transition exists if and only if
+     * all the following conditions are true:
+     * - The source and target names are the same
+     * - The state transition label is the same.
+     * @param stateTransitions A Collection of all existing transitions.
+     * @param transition The transition to be checked.
+     * @return Returns true if the transition exists else it will return false.
+     */
     private boolean successorExists(Collection<StateTransition> stateTransitions, StateTransition transition) {
         for (StateTransition stateTransition : stateTransitions) {
             if (((DataObjectState)stateTransition.getSource()).getName().equals(

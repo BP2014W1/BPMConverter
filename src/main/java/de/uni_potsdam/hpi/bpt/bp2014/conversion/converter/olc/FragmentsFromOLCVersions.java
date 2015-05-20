@@ -10,12 +10,29 @@ import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.synchronize.SynchronizedObje
 import java.util.*;
 
 /**
- * Created by Stpehan on 16.05.2015.
+ * This class represents a convert.
+ * It generates fragments from different OLC versions.
+ * Fragments are {@link ActivityCentricProcessModel} which consist of one
+ * Start Event and an Activity and one End Event.
+ * The Fragments will represent additional combined transitions.
  */
 public class FragmentsFromOLCVersions {
 
+    /**
+     * A Collection of Object Life Cycles which represent
+     * the grouped olcs.
+     */
     private Collection<? extends ObjectLifeCycle> groupedOLCs;
 
+    /**
+     * This method generates a collection of fragments from multiple Object Life Cycles.
+     * Therefore it needs both the new and the old version of each OLC which should be
+     * taken into account.
+     *
+     * @param oldOLCs A Collection of Object Life Cycles representing the old version.
+     * @param newOLCs A Collection of Object Life Cycles representing the new version.
+     * @return A Collection of Activity Centric Process Model - the fragments generated.
+     */
     public Collection<ActivityCentricProcessModel> convert(Collection<? extends ObjectLifeCycle> oldOLCs,
                                                            Collection<? extends ObjectLifeCycle> newOLCs) {
         Collection<ActivityCentricProcessModel> acpms = new HashSet<>();
@@ -37,6 +54,13 @@ public class FragmentsFromOLCVersions {
         return acpms;
     }
 
+    /**
+     * This method creates an Fragment for a given combined transition.
+     * Such a Fragment will consist of a Start Event an End Event and an Activity with multiple Out and Inputs.
+     *
+     * @param combinedTransition The Combined transition which will be taken into accoutn.
+     * @return The generated Fragment.
+     */
     private ActivityCentricProcessModel createFragment(CombinedTransition combinedTransition) {
         ActivityCentricProcessModel acpm = new ActivityCentricProcessModel();
         Event startEvent = new Event();
@@ -59,7 +83,7 @@ public class FragmentsFromOLCVersions {
         for (Map.Entry<StateTransition, ObjectLifeCycle> transitionAndOLC :
                 combinedTransition.getTransitionsAndOLCs().entrySet()) {
             if (!name.contains(transitionAndOLC.getKey().getLabel())) {
-                name = name + transitionAndOLC.getKey().getLabel() +  ", ";
+                name = name + transitionAndOLC.getKey().getLabel() + ", ";
             }
             DataObject input = new DataObject(transitionAndOLC.getValue().getLabel(),
                     (DataObjectState) transitionAndOLC.getKey().getSource());
@@ -81,6 +105,15 @@ public class FragmentsFromOLCVersions {
         return acpm;
     }
 
+    /**
+     * This method groups the object life cycle versions.
+     * For each new Object Life Cycle an old one will be determined and aggregated into an
+     * {@link ObjectLifeCycleDiff}.
+     *
+     * @param oldOLCs The collection of old Object Life cycles.
+     * @param newOLCs The collection of new Object Life Cycles.
+     * @return A Collection of Object Life Cycle Diffs representing the grouped OLCs.
+     */
     private Collection<ObjectLifeCycleDiff> groupOLCVersions(
             Collection<? extends ObjectLifeCycle> oldOLCs,
             Collection<? extends ObjectLifeCycle> newOLCs) {

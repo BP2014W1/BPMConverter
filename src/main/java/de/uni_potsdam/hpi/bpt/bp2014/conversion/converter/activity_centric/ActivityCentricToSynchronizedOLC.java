@@ -22,7 +22,7 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
      * This variable holds an instance of {@link ActivityCentricProcessModel}.
      * It is model which will be converted into an
      * {@link SynchronizedObjectLifeCycle}.
-     *
+     * <p>
      * If changes happen to this model during the conversion, they might end
      * up in a corrupt state of the converter or synchronizedObjectLifeCycle.
      */
@@ -65,14 +65,26 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
      */
     private Map<StateTransition, List<StateTransition>> synchronisationEdges;
 
+    /**
+     * Creates a new Object of the class.
+     * Sets and collections will be initialized (empty).
+     */
     public ActivityCentricToSynchronizedOLC() {
         checkedNodes = new HashSet<>();
         loopNodes = new HashSet<>();
         synchronisationEdges = new HashMap<>();
     }
 
+    /**
+     * Generates an {@link SynchronizedObjectLifeCycle} from an given {@link ActivityCentricProcessModel}.
+     * Activities will be transformed to transitions and there will be an OLC for each unique DataObject name.
+     * For more details about the conversion algorithm {@see bpt.hpi.uni-potsdam.de/pub/Public/AndreasMeyer/Technical_Report_Activity-centric_and_Artifact-centric_Process_Model_Roundtrip.pdf}
+     *
+     * @param acpm Is the Activity Centric Process Model to be converted.
+     * @return The generated model, an instance of {@link SynchronizedObjectLifeCycle}
+     */
     public IModel convert(ActivityCentricProcessModel acpm) {
-        assert null !=  acpm : "Null can not be converted into a process model";
+        assert null != acpm : "Null can not be converted into a process model";
         this.acpm = acpm;
         initOLCs();
         identifyDistinctDataStates();
@@ -201,12 +213,12 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
                         stateCollections.put(entry.getKey(), entry.getValue());
                     }
                 } else if (node instanceof Gateway &&
-                        ((Gateway)node).getType().equals(Gateway.Type.XOR)) {
+                        ((Gateway) node).getType().equals(Gateway.Type.XOR)) {
                     // Currently we do not support edge conditions
                 }
             }
         }
-        for (Map.Entry<ObjectLifeCycle,Collection<DataObjectState>> entry
+        for (Map.Entry<ObjectLifeCycle, Collection<DataObjectState>> entry
                 : dataStatesPerOLC.entrySet()) {
             Collection<DataObjectState> finalStates = new HashSet<>();
             for (DataObjectState dataObjectState : entry.getValue()) {
@@ -230,8 +242,6 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
      * This method extracts all traces of the {@link #acpm}.
      * Therefore it uses a method which is analogue to creating a
      * reachability graph for a petri net.
-     *
-     * TODO: Currently this method allows duplicated traces
      */
     private void extractTraces() {
         Map<List<INode>, Collection<List<INode>>>
@@ -291,13 +301,26 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
         traces = new HashSet<>(tracesAndTheirSuccessors.keySet());
     }
 
+    /**
+     * This method returns a a Collection of a List of successors.
+     * This collection represents all possible successors of a specified node (predecessor).
+     * In order to determine those nodes we need some information:
+     *
+     * @param previousTrace          The previous trace, with all nodes triggered before the predecessor.
+     * @param previousSuccessorGroup The previous successor Group, all nodes which have been enabled
+     *                               at the end of the previousTrace.
+     * @param predecessor            The Predecessor of the successors. Means the node which will be checked for
+     *                               successors.
+     * @return A Collection of List of Nodes. These collection represents all successor. Every list
+     * inside the collection hold a number of concurrent successors. The List represent exclusive groups.
+     */
     private Collection<List<INode>> getSuccessorsFor(
             List<INode> previousTrace, List<INode> previousSuccessorGroup, INode predecessor) {
         Collection<List<INode>> successors = new HashSet<>();
         if (!loopNodes.contains(predecessor)) {
             if (!(predecessor instanceof Gateway) && checkedNodes.contains(predecessor)) {
                 loopNodes.add(predecessor);
-            } else if (!(predecessor instanceof Gateway)){
+            } else if (!(predecessor instanceof Gateway)) {
                 checkedNodes.add(predecessor);
             }
             List<INode> successorGroup = new LinkedList<>(previousSuccessorGroup);
@@ -341,7 +364,7 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
             List<INode> reducedSuccessorGroup = new LinkedList<>(successorGroup);
             for (INode successor : successorGroup) {
                 if (successor instanceof Gateway &&
-                        ((Gateway)successor).getType().equals(Gateway.Type.AND)) {
+                        ((Gateway) successor).getType().equals(Gateway.Type.AND)) {
                     boolean enabled = true;
                     for (IEdge incomingCF
                             : successor.getIncomingEdgesOfType(ControlFlow.class)) {
@@ -361,17 +384,32 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
         return result;
     }
 
+    /**
+     * Extracts all states from the Activity Centric Process model.
+     * For each Data Object (identified by the name of the {@link DataObject} node)
+     * the state will be extracted and added to the {@link #dataStatesPerOLC} Map.
+     *
+     * Calling this method twice would discard the results of the first run.
+     */
     private void identifyDistinctDataStates() {
         dataStatesPerOLC = new HashMap<>();
         for (INode iNode : acpm.getNodesOfClass(DataObject.class)) {
-            ObjectLifeCycle olc = getOLCWithName(((DataObject)iNode).getName());
+            ObjectLifeCycle olc = getOLCWithName(((DataObject) iNode).getName());
             if (dataStatesPerOLC.get(olc) == null) {
                 dataStatesPerOLC.put(olc, new HashSet<DataObjectState>());
             }
-            dataStatesPerOLC.get(olc).add(((DataObject)iNode).getState());
+            dataStatesPerOLC.get(olc).add(((DataObject) iNode).getState());
         }
     }
 
+    /**
+     * This method goes through the {@link #olcs} Collection.
+     * The first Object Life Cycle with the name specified by the parameter
+     * will be returned.
+     * If no OLC was found null will be returned.
+     * @param name The name of the Object Life Cycle.
+     * @return The first Object Life Cycle matching the criteria or null.
+     */
     private ObjectLifeCycle getOLCWithName(String name) {
         for (ObjectLifeCycle olc : olcs) {
             if (olc.getLabel().equals(name)) {
@@ -381,11 +419,16 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
         return null;
     }
 
+    /**
+     * This method initializes the {@link #olcs} list.
+     * The unique Data object names will be extracted from the Activity Centric
+     * Process Model and for each name a {@link ObjectLifeCycle} will be created.
+     */
     private void initOLCs() {
         olcs = new ArrayList<>();
         Collection<String> dataClassNames = new HashSet<>();
         for (INode iNode : acpm.getNodesOfClass(DataObject.class)) {
-            dataClassNames.add(((DataObject)iNode).getName());
+            dataClassNames.add(((DataObject) iNode).getName());
         }
         for (String dataClassName : dataClassNames) {
             DataObjectState initState = new DataObjectState("i");
@@ -398,6 +441,9 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
 
     @Override
     public <T extends IModel> T convert(IModel model, Class<T> t) {
+        if (model instanceof ActivityCentricProcessModel) {
+            return (T) convert((ActivityCentricProcessModel) model);
+        }
         return null;
     }
 }

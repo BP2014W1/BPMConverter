@@ -77,10 +77,10 @@ public class SynchronizedObjectLifeCycle implements IModel {
     }
 
     @Override
-    public List<INode> getFinalStates() {
+    public List<INode> getFinalNodes() {
         List<INode> nodes = new LinkedList<>();
         for (ObjectLifeCycle olc : objectLifeCycles) {
-            nodes.addAll(olc.getFinalStates());
+            nodes.addAll(olc.getFinalNodes());
         }
         return nodes;
     }

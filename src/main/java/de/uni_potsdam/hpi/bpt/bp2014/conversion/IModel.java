@@ -15,7 +15,7 @@ public interface IModel {
 
     public void addFinalNode(INode finalNode);
 
-    public List<INode> getFinalStates();
+    public List<INode> getFinalNodes();
 
     public <T extends INode> List<T> getFinalNodesOfClass(Class T);
 }

@@ -83,7 +83,7 @@ public class ObjectLifeCycle implements IModel {
     }
 
     @Override
-    public List<INode> getFinalStates() {
+    public List<INode> getFinalNodes() {
         return new ArrayList<INode>(finalStates);
     }
 

@@ -1,6 +1,5 @@
 package de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.olc;
 
-import de.uni_potsdam.hpi.bpt.bp2014.conversion.INode;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.DataObjectState;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.ObjectLifeCycle;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.StateTransition;
@@ -43,7 +42,7 @@ public class ObjectLifeCycleDiff extends ObjectLifeCycle {
         if (!newStateObjects.containsKey(oldNode.getName())) {
             newStateObjects.put(oldNode.getName(),
                     new DataObjectState(oldNode.getName()));
-            if (newOLC.getFinalStates().contains(oldNode)) {
+            if (newOLC.getFinalNodes().contains(oldNode)) {
                 addFinalNode(newStateObjects.get(oldNode.getName()));
             }
             addNode(newStateObjects.get(oldNode.getName()));

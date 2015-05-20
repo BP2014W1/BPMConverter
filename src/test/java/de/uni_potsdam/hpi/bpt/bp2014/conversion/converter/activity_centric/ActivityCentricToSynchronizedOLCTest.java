@@ -48,7 +48,7 @@ public class ActivityCentricToSynchronizedOLCTest {
         SynchronizedObjectLifeCycle solc = (SynchronizedObjectLifeCycle) acpm2solc.convert(acpm);
         assertTrue("There should be now Object Life Cycles.", solc.getOLCs().isEmpty());
         assertNull("There should be no startNode.", solc.getStartNode());
-        assertTrue("There should be no final node.", solc.getFinalStates().isEmpty());
+        assertTrue("There should be no final node.", solc.getFinalNodes().isEmpty());
         assertTrue("There should be no final node.", solc.getSynchronisationEdges().isEmpty());
     }
 
@@ -106,7 +106,7 @@ public class ActivityCentricToSynchronizedOLCTest {
         SynchronizedObjectLifeCycle solc = (SynchronizedObjectLifeCycle) acpm2solc.convert(acpm);
         assertTrue("There should be now Object Life Cycles.", solc.getOLCs().isEmpty());
         assertNull("There should be no startNode.", solc.getStartNode());
-        assertTrue("There should be no final node.", solc.getFinalStates().isEmpty());
+        assertTrue("There should be no final node.", solc.getFinalNodes().isEmpty());
         assertTrue("There should be no final node.", solc.getSynchronisationEdges().isEmpty());
     }
 
@@ -163,7 +163,7 @@ public class ActivityCentricToSynchronizedOLCTest {
         SynchronizedObjectLifeCycle solc = (SynchronizedObjectLifeCycle) acpm2solc.convert(acpm);
         assertTrue("There should be now Object Life Cycles.", solc.getOLCs().isEmpty());
         assertNull("There should be no startNode.", solc.getStartNode());
-        assertTrue("There should be no final node.", solc.getFinalStates().isEmpty());
+        assertTrue("There should be no final node.", solc.getFinalNodes().isEmpty());
         assertTrue("There should be no final node.", solc.getSynchronisationEdges().isEmpty());
     }
 
@@ -249,7 +249,7 @@ public class ActivityCentricToSynchronizedOLCTest {
         SynchronizedObjectLifeCycle solc = (SynchronizedObjectLifeCycle) acpm2solc.convert(acpm);
         assertEquals("There should be 2 Object Life Cycles.", 2, solc.getOLCs().size());
         assertNull("There should be no startNode.", solc.getStartNode());
-        assertFalse("There should be more than one final node.", solc.getFinalStates().isEmpty());
+        assertFalse("There should be more than one final node.", solc.getFinalNodes().isEmpty());
         assertEquals("There should be four synchronization Edge.", 4, solc.getSynchronisationEdges().size());
         assertEquals("The sum of the Nodes in two Models should be 6", 6, solc.getNodes().size());
         assertEquals("The 1st synchronized OLC should have 3 nodes", 3, solc.getOLCs().get(0).getNodes().size());
@@ -356,7 +356,7 @@ public class ActivityCentricToSynchronizedOLCTest {
         SynchronizedObjectLifeCycle solc = (SynchronizedObjectLifeCycle) acpm2solc.convert(acpm);
         assertEquals("There should be 2 Object Life Cycles.", 2, solc.getOLCs().size());
         assertNull("There should be no startNode.", solc.getStartNode());
-        assertFalse("There should be more than one final node.", solc.getFinalStates().isEmpty());
+        assertFalse("There should be more than one final node.", solc.getFinalNodes().isEmpty());
         assertEquals("There should be four synchronization Edge.", 4, solc.getSynchronisationEdges().size());
         assertEquals("The sum of the Nodes in two Models should be 6", 6, solc.getNodes().size());
         assertEquals("The 1st synchronized OLC should have 3 nodes", 3, solc.getOLCs().get(0).getNodes().size());

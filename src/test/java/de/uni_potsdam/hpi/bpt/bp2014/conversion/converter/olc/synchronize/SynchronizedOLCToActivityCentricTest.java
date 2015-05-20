@@ -175,9 +175,9 @@ public class SynchronizedOLCToActivityCentricTest {
         SynchronizedOLCToActivityCentric converter = new SynchronizedOLCToActivityCentric();
         ActivityCentricProcessModel activityCentric = converter.convert(synchronizedObjectLifeCycle);
         INode start = activityCentric.getStartNode();
-        assertFalse("The model has no final node", activityCentric.getFinalStates().isEmpty());
-        assertEquals("There is more than one final node", 1, activityCentric.getFinalStates().size());
-        INode end = activityCentric.getFinalStates().get(0);
+        assertFalse("The model has no final node", activityCentric.getFinalNodes().isEmpty());
+        assertEquals("There is more than one final node", 1, activityCentric.getFinalNodes().size());
+        INode end = activityCentric.getFinalNodes().get(0);
         assertTrue("The final node is not an Event", end instanceof Event);
         assertEquals("The final node is not of type Event", Event.Type.END, ((Event)end).getType());
         assertNotEquals("The start node of the model is null", null, start);

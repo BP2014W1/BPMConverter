@@ -61,8 +61,18 @@ public class OLCConversionFlyweight<T extends IModel> {
      * They will be represented by a {@link Activity} Object.
      */
     private Map<DataObjectState, Activity> nopActivitiesForFinalStates;
-
+    /**
+     * NOP activities will only be created once for each final state.
+     * Thus, they can have more than one incoming edge.
+     * Because {@link Activity} does not allow to have multiple edges
+     * they will be added to this map to determine preceeding joins/merges.
+     */
     private Map<Activity, Collection<ControlFlow>> incomingEdgesOfNOP;
+    /**
+     * For each Combined transition of a Synchronized Object Life Cycle
+     * an Activity Builder will be created. Those are unique. Hence,
+     * they will be saved as a part of the *global* state.
+     */
     private Map<CombinedTransition, ActivityBuilder> builderPerCombinedTransition;
 
     /**
@@ -167,7 +177,6 @@ public class OLCConversionFlyweight<T extends IModel> {
      * will be group.
      * In future versions the synchronized Edges should be used.
      * TODO: Use synchronized transitions instead
-     * TODO: What happens if there are synchronized edges in one OLC?
      */
     private void initCombinedTransitions() {
         combinedTransitions = new ArrayList<>();
@@ -188,6 +197,87 @@ public class OLCConversionFlyweight<T extends IModel> {
                                     olc));
                 }
             }
+        }
+    }
+
+    /**
+     * This method finalizes the Model.
+     * This means an end Event will be added and the Gateways before
+     * and After the NOP Activities will be established as well as Activities
+     * for each ActivityBuilder.
+     * In the end we may add a Gateway preceedign the end event.
+     */
+    public void finalizeModel() {
+        Event endEvent = new Event();
+        endEvent.setType(Event.Type.END);
+        modelUnderConstruction.addNode(endEvent);
+        modelUnderConstruction.addFinalNode(endEvent);
+        Collection<Activity> finalActivities = new HashSet<>();
+        for (Map.Entry<Activity, Collection<ControlFlow>> entry :
+                incomingEdgesOfNOP.entrySet()) {
+            if (entry.getValue().size() == 1) {
+                entry.getKey().addIncomingEdge(
+                        entry.getValue().iterator().next());
+            } else {
+                Gateway xor = new Gateway();
+                xor.setType(Gateway.Type.XOR);
+                for (ControlFlow flow : entry.getValue()) {
+                    flow.setTarget(xor);
+                    xor.addIncomingEdge(flow);
+                }
+                ControlFlow incoming = new ControlFlow(xor, entry.getKey());
+                Collection<ControlFlow> incomingFlow = new HashSet<>();
+                xor.addOutgoingEdge(incoming);
+                incomingFlow.add(incoming);
+                entry.setValue(incomingFlow);
+                entry.getKey().addIncomingEdge(incoming);
+                modelUnderConstruction.addNode(xor);
+            }
+        }
+        for (ActivityBuilder activityBuilder : builderPerCombinedTransition.values()) {
+            Activity activity = activityBuilder.build();
+            finalActivities.addAll(activityBuilder.getNopActivities());
+            if (activity.getOutgoingEdgesOfType(ControlFlow.class).isEmpty()) {
+                finalActivities.add(activity);
+            }
+            modelUnderConstruction.addNode(
+                    activity
+            );
+        }
+        if (finalActivities.size() == 1) {
+            Activity finalActivity = finalActivities.iterator().next();
+            if (nopActivitiesForFinalStates.values().contains(finalActivity)) {
+                IEdge cf = finalActivity.getIncomingEdgesOfType(ControlFlow.class)
+                        .iterator().next();
+                cf.setTarget(endEvent);
+                endEvent.addIncomingEdge(cf);
+            } else {
+                ControlFlow cf = new ControlFlow(finalActivity, endEvent);
+                finalActivity.addOutgoingEdge(cf);
+                endEvent.addIncomingEdge(cf);
+            }
+        } else {
+            Gateway xor = new Gateway();
+            xor.setType(Gateway.Type.XOR);
+            for (Activity finalActivity : finalActivities) {
+                if (nopActivitiesForFinalStates.values().contains(finalActivity)) {
+                    IEdge cf = finalActivity.getIncomingEdgesOfType(ControlFlow.class)
+                            .iterator().next();
+                    cf.setTarget(xor);
+                    xor.addIncomingEdge(cf);
+                } else {
+                    ControlFlow cf = new ControlFlow(finalActivity, xor);
+                    finalActivity.addOutgoingEdge(cf);
+                    xor.addIncomingEdge(cf);
+                }
+            }
+            ControlFlow cf = new ControlFlow(xor, endEvent);
+            xor.addOutgoingEdge(cf);
+            endEvent.addIncomingEdge(cf);
+            modelUnderConstruction.addNode(xor);
+        }
+        for (DataObject dataObject : dataObjectsPerState.values()) {
+            modelUnderConstruction.addNode(dataObject);
         }
     }
 
@@ -283,79 +373,5 @@ public class OLCConversionFlyweight<T extends IModel> {
 
     public Collection<ActivityBuilder> getActivityBuilders() {
         return builderPerCombinedTransition.values();
-    }
-
-    public void finalizeModel() {
-        Event endEvent = new Event();
-        endEvent.setType(Event.Type.END);
-        modelUnderConstruction.addNode(endEvent);
-        modelUnderConstruction.addFinalNode(endEvent);
-        Collection<Activity> finalActivities = new HashSet<>();
-        for (Map.Entry<Activity, Collection<ControlFlow>> entry :
-                incomingEdgesOfNOP.entrySet()) {
-            if (entry.getValue().size() == 1) {
-                entry.getKey().addIncomingEdge(
-                        entry.getValue().iterator().next());
-            } else {
-                Gateway xor = new Gateway();
-                xor.setType(Gateway.Type.XOR);
-                for (ControlFlow flow : entry.getValue()) {
-                    flow.setTarget(xor);
-                    xor.addIncomingEdge(flow);
-                }
-                ControlFlow incoming = new ControlFlow(xor, entry.getKey());
-                Collection<ControlFlow> incomingFlow = new HashSet<>();
-                xor.addOutgoingEdge(incoming);
-                incomingFlow.add(incoming);
-                entry.setValue(incomingFlow);
-                entry.getKey().addIncomingEdge(incoming);
-                modelUnderConstruction.addNode(xor);
-            }
-        }
-        for (ActivityBuilder activityBuilder : builderPerCombinedTransition.values()) {
-            Activity activity = activityBuilder.build();
-            finalActivities.addAll(activityBuilder.getNopActivities());
-            if (activity.getOutgoingEdgesOfType(ControlFlow.class).isEmpty()) {
-                finalActivities.add(activity);
-            }
-            modelUnderConstruction.addNode(
-                    activity
-            );
-        }
-        if (finalActivities.size() == 1) {
-            Activity finalActivity = finalActivities.iterator().next();
-            if (nopActivitiesForFinalStates.values().contains(finalActivity)) {
-                IEdge cf = finalActivity.getIncomingEdgesOfType(ControlFlow.class)
-                        .iterator().next();
-                cf.setTarget(endEvent);
-                endEvent.addIncomingEdge(cf);
-            } else {
-                ControlFlow cf = new ControlFlow(finalActivity, endEvent);
-                finalActivity.addOutgoingEdge(cf);
-                endEvent.addIncomingEdge(cf);
-            }
-        } else {
-            Gateway xor = new Gateway();
-            xor.setType(Gateway.Type.XOR);
-            for (Activity finalActivity : finalActivities) {
-                if (nopActivitiesForFinalStates.values().contains(finalActivity)) {
-                    IEdge cf = finalActivity.getIncomingEdgesOfType(ControlFlow.class)
-                            .iterator().next();
-                    cf.setTarget(xor);
-                    xor.addIncomingEdge(cf);
-                } else {
-                    ControlFlow cf = new ControlFlow(finalActivity, xor);
-                    finalActivity.addOutgoingEdge(cf);
-                    xor.addIncomingEdge(cf);
-                }
-            }
-            ControlFlow cf = new ControlFlow(xor, endEvent);
-            xor.addOutgoingEdge(cf);
-            endEvent.addIncomingEdge(cf);
-            modelUnderConstruction.addNode(xor);
-        }
-        for (DataObject dataObject : dataObjectsPerState.values()) {
-            modelUnderConstruction.addNode(dataObject);
-        }
     }
 }

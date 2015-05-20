@@ -59,19 +59,12 @@ public class ActivityBuilder {
      * the states after termination.
      */
     private Collection<CombinedTransition> concurrentCTs;
+    /**
+     * This Collection holds a number of ActivityBuilders which represent
+     * Activities which preceded the Activity represented by this current
+     * ActivityBuilder.
+     */
     private Collection<ActivityBuilder> predecessors;
-
-    public Collection<CombinedTransition> getPets() {
-        return pets;
-    }
-
-    public Collection<Activity> getNopActivities() {
-        return nopActivities;
-    }
-
-    public Collection<CombinedTransition> getEnabledCTs() {
-        return enabledCTs;
-    }
 
     /**
      * The incoming control flow of the Activity.
@@ -247,7 +240,6 @@ public class ActivityBuilder {
      */
     public ActivityBuilder findEnabledCombinedTransitions(
             Collection<DataObjectState> availableStates) {
-        // FIXME: fix the ct type issue
         // Pre-Condition: Variables have to be set
         assert flyweight != null : "The flyweight has not been set";
         assert outgoingDataFlow != null : "The DataFlow has to be set";
@@ -272,8 +264,6 @@ public class ActivityBuilder {
      * * The outgoing Data Flow must be set.
      */
     public ActivityBuilder findEnabledCombinedTransitions() {
-        // FIXME: fix the ct type issue
-        // Pre-Condition: Variables have to be set
         assert flyweight != null : "The flyweight has not been set";
         assert outgoingDataFlow != null : "The DataFlow has to be set";
         assert availableStates != null : "availableStates must be set";
@@ -349,8 +339,6 @@ public class ActivityBuilder {
      *           it is a a possible enabled combined transition.
      * @return True if the CombinedTransition ct is a possible enabled combined
      * transition else false.
-     *
-     * TODO: This method may be optimized: Iterate over the OLCs - the condition must hold for every shared OLC
      */
     private boolean isPossibleEnabledTransition(CombinedTransition ct) {
         if (enabledCTs.contains(ct)) {
@@ -712,7 +700,6 @@ public class ActivityBuilder {
             outgoingControlFlow.add(outgoing);
             for (Activity nopActivity : nopActivities) {
                 ControlFlow cf = new ControlFlow(xor, nopActivity);
-                // FIXME: Maybe the list has to be cleared before
                 flyweight.addIncomingEdgeFor(nopActivity, cf);
                 xor.addOutgoingEdge(cf);
             }
@@ -742,7 +729,7 @@ public class ActivityBuilder {
     }
 
     /**
-     * This method establishs the incoming control flow.
+     * This method establishes the incoming control flow.
      *
      * Means if this activity has more than one incoming edge
      * an gateway will be established.
@@ -785,5 +772,9 @@ public class ActivityBuilder {
             }
         }
         return true;
+    }
+
+    public Collection<Activity> getNopActivities() {
+        return nopActivities;
     }
 }

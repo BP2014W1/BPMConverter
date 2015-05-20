@@ -14,23 +14,24 @@ import java.util.*;
  * and holds additional synchronization edges between state transitions.
  */
 public class SynchronizedObjectLifeCycle implements IModel {
-
+    /**
+     * A List of {@link ObjectLifeCycle} representing
+     * the synchronized Object Life Cycles.
+     * Only Edges of such an OLC can be synchronized.
+     */
     private List<ObjectLifeCycle> objectLifeCycles;
-
+    /**
+     * The Synchronization edges represent transitions which
+     * must be executed together.
+     * For each transition there is a list of transitions that
+     * will be executed as well.
+     */
     private Map<StateTransition, List<StateTransition>> synchronisationEdges;
 
-    public void setObjectLifeCycles(List<ObjectLifeCycle> objectLifeCycles) {
-        this.objectLifeCycles = objectLifeCycles;
-    }
-
-    public Map<StateTransition, List<StateTransition>> getSynchronisationEdges() {
-        return synchronisationEdges;
-    }
-
-    public void setSynchronisationEdges(Map<StateTransition, List<StateTransition>> synchronisationEdges) {
-        this.synchronisationEdges = synchronisationEdges;
-    }
-
+    /**
+     * Creates a new and empty Synchronized Object Life Cycle.
+     * With no olcs
+     */
     public SynchronizedObjectLifeCycle() {
         objectLifeCycles = new ArrayList<>();
         synchronisationEdges = new HashMap<>();
@@ -41,6 +42,15 @@ public class SynchronizedObjectLifeCycle implements IModel {
         return objectLifeCycles;
     }
 
+    /**
+     * Returns a list of Nodes, this list contains
+     * all the nodes from every OLC of this synchronized Object
+     * Life Cycle.
+     * The list will be created every time so this operation is
+     * quite expensive.
+     *
+     * @return The aggregated List of nodes.
+     */
     @Override
     public List<INode> getNodes() {
         List<INode> nodes = new LinkedList<>();
@@ -59,6 +69,19 @@ public class SynchronizedObjectLifeCycle implements IModel {
         // Do nothing
     }
 
+    /**
+     * Returns a list of Nodes, this list contains
+     * all the nodes from every OLC of this synchronized Object
+     * Life Cycle.
+     * Every node must fulfill the condition, means must be an instance
+     * of the class specified.
+     * The list will be created every time so this operation is
+     * quite expensive.
+     *
+     * @param t The class for the selection condition.
+     * @param <T> the return type.
+     * @return The aggregated List of nodes.
+     */
     @Override
     public <T extends INode> List<T> getNodesOfClass(Class t) {
         List<T> nodes = new LinkedList<>();
@@ -140,5 +163,17 @@ public class SynchronizedObjectLifeCycle implements IModel {
             edges.addAll((Collection<T>) node.getOutgoingEdgesOfType(t));
         }
         return new ArrayList<>(edges);
+    }
+
+    public void setObjectLifeCycles(List<ObjectLifeCycle> objectLifeCycles) {
+        this.objectLifeCycles = objectLifeCycles;
+    }
+
+    public Map<StateTransition, List<StateTransition>> getSynchronisationEdges() {
+        return synchronisationEdges;
+    }
+
+    public void setSynchronisationEdges(Map<StateTransition, List<StateTransition>> synchronisationEdges) {
+        this.synchronisationEdges = synchronisationEdges;
     }
 }

@@ -1,0 +1,28 @@
+\section{Integration Strategies}
+
+There different approaches on how to use the BPMConverter.
+
+\subsection{How to use the provided classes?}
+
+A naive way to integrate the converter in your project would be to create the models out of the classes provided by the converter.
+On the other hand you can write your own converter converting your models to BPMConverter compatible models and back in your representation.
+The biggest benefit of this approach is, that you don't have to alter your models.
+
+\subsection{How to use inheritance?}
+
+If you have full power of the implementation of your models, you might subclass the classes provided by the BPMConverter.
+This allows you to add any behavior to the model elements used by the converter.
+The benefit is that you can use your models directly as an input for the BPMConverter.
+But you have to be aware that the result will not be compliant to your models, because the converter uses the superclasses.
+
+Nevertheless, transforming those superclass models into your model representations is easy since you can simply map the classes.
+
+\subsection{How to integrate using adapters?}
+
+In our Production Case Management Framework we integrated the Converter module inside the ProcessEditor\footnote{\url{https://github.com/BP2014W1/processeditor}} using the adapter pattern.
+Every adapter class extends an element of the BPMConverter and is initialized with at least one model element used by the ProcessEditor.
+The adapter wraps these objects and delegates part of calls to the original object.
+If necessary the return value will be wrapped as well.
+In order to improve the performance and to allow comparison with the default equals method wrapped objects are cached.
+
+\subsubsection{Example Adapter}

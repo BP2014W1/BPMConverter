@@ -1,0 +1,154 @@
+\section{Project Structure}
+
+The BPMConverter is build with two purposes.
+On the one hand it provides interfaces and classes to describe Process Models using different representations.
+There are elements to create an so called Activity Centric Process model as well as elements to create an Object Life Cycle.
+These classes can be found in the \textit{activity\_centric} package.
+
+On the other hand their are classes implementing different algorithms to generate additional process models.
+These classes can be found inside the \textit{converter} package.
+
+\subsection{How to create a process model}
+
+The \textit{conversion} package contains classes to build process models.
+In general a model consists of multiple nodes connected by edges.
+All classes representing a node must implement the \textit{INode} interface.
+Edges must implement the \textit{IEdge} interface.
+Each node can have multiple incoming and outgoing edges, but their might stricter restrictions for the concrete implementations.
+
+Currently their are two types of models implemented:
+\begin{itemize}
+	\item \textbf{Activity centric process models}. These models can be compared to BPMN models.
+	\item \textbf{Object Life Cycles}. Instances of this model represent a state transition chart for one data class.
+\end{itemize}
+
+\subsubsection{Activity Centric Process Models}
+
+Activity centric process model express processes by adding constraints to activities.
+Those constraints can be either data dependencies or control flow dependencies.
+Data dependencies express data objects which will be read and written by the activity;
+whereas control flow allows us to create an order between activities of one model.
+
+The Table \ref{tbl:acpm_elements} shows the elements of Activity Centric Process Models the interface they implement and the restrictions they add to the default behavior.
+
+\begin{table}[h]
+	\centering
+	\begin{tabular}{|l|l|p{8cm}|}
+		\hline
+		\textbf{class name} & \textbf{interface} & \textbf{restrictions}\\
+		\hline
+		Activity & INode & \begin{itemize}
+					\item Only Control Flow and Data Flow edges are supported
+					\item There must be only one incoming control flow edge
+					\item There must be only one outgoing control flow edge
+				\end{itemize}\\
+		\hline
+		ActivityCentricProcessModel & IModel & \begin{itemize}
+			\item Node must be one of the supported types.
+		\end{itemize}\\
+		\hline
+		ControlFlow & IEdge & \begin{itemize}
+									\item Source must be either a Gateway, Event or Activity
+								\end{itemize}\\
+		\hline
+		DataFlow & IEdge & \begin{itemize}
+								\item The source must be either a Activity or DataObject
+								\item If the source is an Activity the target must be a DataObject and vise versa
+							\end{itemize}\\
+		\hline
+		DataObject & INode & \begin{itemize}
+								\item All incoming and outgoing edges must be of type DataFlow
+							\end{itemize}\\
+		\hline
+		Event & INode & \begin{itemize}
+							\item An event can have only one edge
+							\item Only an Start Event can have an outgoing edge
+							\item Only an End Event can have an incoming edge
+						\end{itemize}\\
+		\hline
+		Gateway & INode & \begin{itemize}
+							\item Every Edge must be of type ControlFlow.
+							\item An additional type attribute defines if it is an XOR or an AND
+						\end{itemize}\\
+		\hline
+	\end{tabular}
+	\caption{Elements used by the activity centric process Model}
+	\label{tbl:acpm_elements}
+\end{table}
+\subsubsection{Object Life Cycle}
+
+Object Life Cycles are state transitions systems for one data class.
+They express all possible states and transitions between them.
+They can used in various ways for example for conformance checking.
+
+The structure of an Object life cycle is simple.
+Every model has exactly one start node and should have at least one final node.
+There is no limit for other nodes.
+All these models will be connected using state transitions.
+In BPM a state transition normally represents an action which alters the data object.
+Table \ref{tbl:olc_elements} describes the possible elements used inside a object life cycle.
+
+The Table \ref{tbl:acpm_elements} shows the elements of Activity Centric Process Models the interface they implement and the restrictions they add to the default behavior.
+
+\begin{table}[h]
+	\centering
+	\begin{tabular}{|l|l|p{10cm}|}
+		\hline
+		\textbf{class name} & \textbf{interface} & \textbf{restrictions}\\
+		\hline
+		Activity & INode & \begin{itemize}
+					\item Only Control Flow and Data Flow edges are supported
+					\item There must be only one incoming control flow edge
+					\item There must be only one outgoing control flow edge
+				\end{itemize}\\
+		\hline
+		ObjectLifeCycle & IModel & \begin{itemize}
+			\item Every node must be of type DataObjectState
+			\item There should be exactly one initial state
+			\item THere should be at least one final state
+		\end{itemize}\\
+		\hline
+		DataObjectState & INode & \begin{itemize}
+									\item All incoming and outgoing edges must be of type StateTransition
+								\end{itemize}\\
+		\hline
+		StateTransition & IEdge & \begin{itemize}
+									\item Source and target must be of type DataObjectState
+								\end{itemize}\\
+		\hline
+	\end{tabular}
+	\caption{Elements used by the object life cycle model}
+	\label{tbl:olc_elements}
+\end{table}
+
+In addition there is another package \textit{synchronize}. This package contains the synchronized Object Life Cycle (Table \ref{tbl:synchronize_olc}).
+
+\begin{table}[h]
+	\centering
+	\begin{tabular}{|l|l|p{8cm}|}
+		\hline
+		\textbf{class name} & \textbf{interface} & \textbf{restrictions}\\
+		\hline
+		SynchronizedObjectLifeCycle & IModel & \begin{itemize}
+					\item Initialized from multiple ObjectLifeCycles
+					\item Altering is not possible
+					\item Additional Synchronization edges can be created
+				\end{itemize}\\
+		\hline
+	\end{tabular}
+	\caption{The SynchronizedObjectLifeCycle}
+	\label{tbl:synchronize_olc}
+\end{table}
+
+\subsection{How to convert a Process Model}
+
+Once you have created process models with the classes described above (or with any subclasses) you can use the elements of the \textit{converter} package to convert these models.
+The \textit{subpackages} indicate the source of the generation.
+\textit{OLC} subpackage transforms object life cycles, \textit{activity\_centric} Activity Centric Process Models and \textit{pcm} Production Case Management scenarios (A collection of Activity Centric Process Models).
+Figure \ref{fig:transformations} shows which transformations can be made.
+\begin{figure}[h]
+\centering
+\includegraphics{images/transformation.PNG}
+\caption{Possible transformations}
+\label{fig:transformations}
+\end{figure}

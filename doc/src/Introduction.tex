@@ -1,0 +1,40 @@
+\section{Introduction}
+
+Process models can be expressed using different representations.
+Each representation serves a special purpose.
+Activity Centric Process Models such as BPMN models can be used to express the ordering of Tasks, Object Life Cycles provide us with the possibility of conformance checking and configuring state transitions.
+Hence, it might be helpful to have the same process modeled using different notations and approaches.
+The challenge is to assert that the models are compliant.
+This goal can be reached by generating one representation from another.
+For example we can extract an Object Life Cycle from a BPMN model.
+
+\subsection{How to receive the Code}
+
+The code is hosted on Github\footnote{\url{[http://github.com]}}.
+You have the possibility to download the sources in a ZIP archive or to clone the repository using git\footnote{\url{http://git-scm.com}}.
+We recommend to use git.
+Figure \ref{lis:clone} shows how you can clone the repository.
+Afterwards the sources will be saved on your local machine.
+
+\begin{figure}[h]
+	\begin{verbatim}
+		git clone https://github.com/BP2014W1/BPMConverter
+	\end{verbatim}
+	\caption{Cloning the repository from Github using Git}
+	\label{lis:clone}
+\end{figure}
+
+\subsection{How to build the converter}
+\label{subsec:build}
+
+The converter module can be compiled and build using Maven\footnote{\url{https://maven.apache.org/}}.
+Maven will compile the sources and run all the tests.
+Run the command \ref{lis:mvn} from the command line inside your projects root folder.
+
+\begin{figure}[h]
+	\begin{verbatim}
+		mvn clean install
+	\end{verbatim}
+	\caption{Maven command to compile the sources and build a JAR archive}
+	\label{lis:mvn}
+\end{figure}

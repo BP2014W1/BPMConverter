@@ -85,32 +85,7 @@ public class ScenarioToSynchronizedOLC {
         for (Map.Entry<String, Collection<ObjectLifeCycle>> olcsAndName : olcsPerDataClass.entrySet()) {
             Map<DataObjectState, Collection<StateTransition>> successors = new HashMap<>();
             Map<String, DataObjectState> states = new HashMap<>();
-            for (ObjectLifeCycle olc : olcsAndName.getValue()) {
-                for (IEdge transition : olc.getEdgeOfType(StateTransition.class)) {
-                    if (!((DataObjectState)transition.getSource()).getName().equals("i")) {
-                        String sourceName = ((DataObjectState) transition.getSource()).getName();
-                        String targetName = ((DataObjectState) transition.getTarget()).getName();
-                        if (!states.containsKey(sourceName)) {
-                            states.put(sourceName, new DataObjectState(sourceName));
-                        }
-                        if (!states.containsKey(targetName)) {
-                            states.put(targetName, new DataObjectState(targetName));
-                        }
-                        if (!successors.containsKey(states.get(sourceName))) {
-                            successors.put(states.get(sourceName), new HashSet<StateTransition>());
-                        }
-                        if (!successorExists(successors.get(states.get(sourceName)), (StateTransition) transition)) {
-                            StateTransition newTransition = new StateTransition(
-                                    states.get(sourceName),
-                                    states.get(targetName),
-                                    ((StateTransition) transition).getLabel());
-                            successors.get(states.get(sourceName)).add(newTransition);
-                            states.get(sourceName).addOutgoingEdge(newTransition);
-                            states.get(targetName).addIncomingEdge(newTransition);
-                        }
-                    }
-                }
-            }
+            initializeSuccessorsAndStates(olcsAndName, successors, states);
             ObjectLifeCycle olc = new ObjectLifeCycle(olcsAndName.getKey());
             for (DataObjectState dataObjectState : states.values()) {
                 olc.addNode(dataObjectState);
@@ -122,6 +97,47 @@ public class ScenarioToSynchronizedOLC {
                 }
             }
             olcs.add(olc);
+        }
+    }
+
+    /**
+     * This method initializes the successors and states.
+     * Therefore it iterates of every Object Life Cycle.
+     * For each transition the source and target will be determined, and if no such state
+     * has been added before it will be added to the states.
+     * In addition the target will be added to the list of successors for the source.
+     * @param olcsAndName A MapEntry holding all Object Life Cycles for one name name.
+     * @param successors A Map holding all DataStates and a Collection of their successors. (Will save the result)
+     * @param states A Map for all States (will save the result)
+     */
+    private void initializeSuccessorsAndStates(Map.Entry<String, Collection<ObjectLifeCycle>> olcsAndName, Map<DataObjectState,
+            Collection<StateTransition>> successors,
+            Map<String, DataObjectState> states) {
+        for (ObjectLifeCycle olc : olcsAndName.getValue()) {
+            for (IEdge transition : olc.getEdgeOfType(StateTransition.class)) {
+                if (!((DataObjectState)transition.getSource()).getName().equals("i")) {
+                    String sourceName = ((DataObjectState) transition.getSource()).getName();
+                    String targetName = ((DataObjectState) transition.getTarget()).getName();
+                    if (!states.containsKey(sourceName)) {
+                        states.put(sourceName, new DataObjectState(sourceName));
+                    }
+                    if (!states.containsKey(targetName)) {
+                        states.put(targetName, new DataObjectState(targetName));
+                    }
+                    if (!successors.containsKey(states.get(sourceName))) {
+                        successors.put(states.get(sourceName), new HashSet<StateTransition>());
+                    }
+                    if (!successorExists(successors.get(states.get(sourceName)), (StateTransition) transition)) {
+                        StateTransition newTransition = new StateTransition(
+                                states.get(sourceName),
+                                states.get(targetName),
+                                ((StateTransition) transition).getLabel());
+                        successors.get(states.get(sourceName)).add(newTransition);
+                        states.get(sourceName).addOutgoingEdge(newTransition);
+                        states.get(targetName).addIncomingEdge(newTransition);
+                    }
+                }
+            }
         }
     }
 

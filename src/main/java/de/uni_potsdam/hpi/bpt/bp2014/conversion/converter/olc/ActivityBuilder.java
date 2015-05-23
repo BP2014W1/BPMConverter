@@ -23,15 +23,15 @@ import java.util.*;
  */
 public class ActivityBuilder {
     /**
-     * The flyweight object, which holds the data shared among all
-     * builder objects of one Converter.
-     */
-    private OLCConversionFlyweight flyweight;
-    /**
      * This {@link CombinedTransition} represents the Transition
      * executed by the activity.
      */
     private final CombinedTransition ctExecuted;
+    /**
+     * The flyweight object, which holds the data shared among all
+     * builder objects of one Converter.
+     */
+    private OLCConversionFlyweight flyweight;
     /**
      * The Activity which is created and initialized by the builder.
      * Outgoing and incoming control flow will only be set during the
@@ -69,7 +69,6 @@ public class ActivityBuilder {
      * The incoming control flow of the Activity.
      * It will established/ connected to the activity during the execution
      * of the build method.
-
      */
     private Collection<ControlFlow> incomingControlFlow;
     /**
@@ -120,8 +119,8 @@ public class ActivityBuilder {
      * @param ctExecuted      The CombinedTransition executed by this activity.
      *                        Every {@link Activity} is represented by one
      *                        {@link CombinedTransition} and vice versa.
-     *                        <p/>
-     * Pre: * Both parameters must not be null.
+     *                        <p>
+     *                        Pre: * Both parameters must not be null.
      */
     public ActivityBuilder(
             OLCConversionFlyweight<ActivityCentricProcessModel> flyweight,
@@ -198,7 +197,7 @@ public class ActivityBuilder {
      * and a {@link DataObject} with the specified state as target.
      *
      * @param target The {@link DataObjectState} for the {@link DataObject}.
-     *               <p/>
+     *               <p>
      *               Pre: {@link #incomingDataFlow} must be initalized
      */
     private void addOutgoingDataFlow(DataObjectState target) {
@@ -216,7 +215,7 @@ public class ActivityBuilder {
      * and the {@link #activity} as target.
      *
      * @param source The {@link DataObjectState} for the {@link DataObject}.
-     *               <p/>
+     *               <p>
      *               Pre: {@link #outgoingDataFlow} must be initalized
      */
     private void addIncomingDataFlow(DataObjectState source) {
@@ -233,7 +232,7 @@ public class ActivityBuilder {
      *
      * @return The current {@link ActivityBuilder} object will be returned
      * to use method chaining.
-     * <p/>
+     * <p>
      * Pre: * The flyweight Object must be set.
      * * The outgoing Data Flow must be set.
      */
@@ -244,7 +243,7 @@ public class ActivityBuilder {
         assert outgoingDataFlow != null : "The DataFlow has to be set";
         this.availableStates = new HashSet<>(availableStates);
         for (Object element : flyweight.getCombinedTransitions()) {
-            CombinedTransition ct = (CombinedTransition)element;
+            CombinedTransition ct = (CombinedTransition) element;
             if (activityEnablesCombinedTransition(ct)) {
                 enabledCTs.add(ct);
             }
@@ -258,7 +257,7 @@ public class ActivityBuilder {
      *
      * @return The current {@link ActivityBuilder} object will be returned
      * to use method chaining.
-     * <p/>
+     * <p>
      * Pre: * The flyweight Object must be set.
      * * The outgoing Data Flow must be set.
      */
@@ -268,7 +267,7 @@ public class ActivityBuilder {
         assert availableStates != null : "availableStates must be set";
         enabledCTs = new HashSet<>();
         for (Object element : flyweight.getCombinedTransitions()) {
-            CombinedTransition ct = (CombinedTransition)element;
+            CombinedTransition ct = (CombinedTransition) element;
             if (activityEnablesCombinedTransition(ct)) {
                 enabledCTs.add(ct);
             }
@@ -277,15 +276,14 @@ public class ActivityBuilder {
     }
 
 
-
     /**
      * Initializes {@link #pets}.
      * Combined transitions which depend in parts on Data Objects and
      * states written by the activity represented by this builder.
-     *
+     * <p>
      * ALso if the concurrentCTs have been set beforehand, the parameter
      * will be ignored.
-     *
+     * <p>
      * The set will be disjoint to {@link #enabledCTs}.
      * Afterwards the collection has to be reduced in order to determine
      * which combined transitions will be enabled.
@@ -293,9 +291,9 @@ public class ActivityBuilder {
      *
      * @param concurrentCTs A Collection of Combined Transitions indicating
      *                      activities which are concurrent to this activity.
-     *
-     * Pre: * {@link #flyweight} must have been initialized.
-     *      * {@link #enabledCTs} must have been initialized.
+     *                      <p>
+     *                      Pre: * {@link #flyweight} must have been initialized.
+     *                      * {@link #enabledCTs} must have been initialized.
      */
     public ActivityBuilder findPossibleEnabledCombinedTransitions(
             Collection<CombinedTransition> concurrentCTs) {
@@ -310,7 +308,7 @@ public class ActivityBuilder {
                 getStatesAfterConcurrentActivities(concurrentCTs);
         pets = new HashSet<>();
         for (Object element : flyweight.getCombinedTransitions()) {
-            CombinedTransition ct = (CombinedTransition)element;
+            CombinedTransition ct = (CombinedTransition) element;
             if (isPossibleEnabledTransition(ct)) {
                 pets.add(ct);
             }
@@ -357,6 +355,7 @@ public class ActivityBuilder {
      * This methods determines all data states which available
      * after the termination of this and all concurrent activities.
      * They are needed to reduce the possible enabled Combined Transitions.
+     *
      * @param concurrentCTs The Combined Transitions which represent activities
      *                      concurrent to this one.
      * @return A Collection of all states concurrent to this one.
@@ -396,7 +395,7 @@ public class ActivityBuilder {
      *
      * @param ct The combined transition to be checked.
      * @return True if it will be enabled else false.
-     * <p/>
+     * <p>
      * Pre: {@link #ctExecuted} has to be enabled.
      */
     private boolean activityEnablesCombinedTransition(CombinedTransition ct) {
@@ -404,7 +403,7 @@ public class ActivityBuilder {
                 statesAvailableAfterTermination();
         Map<ObjectLifeCycle, List<StateTransition>> transitionsPerOLC =
                 new HashMap<>();
-        for (Map.Entry<StateTransition,ObjectLifeCycle> entry
+        for (Map.Entry<StateTransition, ObjectLifeCycle> entry
                 : ct.getTransitionsAndOLCs().entrySet()) {
             if (transitionsPerOLC.get(entry.getValue()) == null) {
                 transitionsPerOLC.put(entry.getValue(),
@@ -428,14 +427,14 @@ public class ActivityBuilder {
     }
 
     private Collection<StateTransition> getEnabledTransitions(
-                Collection<DataObjectState> enabledStates) {
-            Collection<StateTransition> enabledTransitions = new LinkedList<>();
-            for (DataObjectState state : enabledStates) {
-                for (IEdge transition :
-                        state.getIncomingEdgesOfType(StateTransition.class)) {
-                    enabledTransitions.add((StateTransition) transition);
-                }
+            Collection<DataObjectState> enabledStates) {
+        Collection<StateTransition> enabledTransitions = new LinkedList<>();
+        for (DataObjectState state : enabledStates) {
+            for (IEdge transition :
+                    state.getIncomingEdgesOfType(StateTransition.class)) {
+                enabledTransitions.add((StateTransition) transition);
             }
+        }
         return enabledTransitions;
     }
 
@@ -484,13 +483,12 @@ public class ActivityBuilder {
      * of each Output Data Object.
      *
      * @param otherActivity The ActivityBuilder Object to Compare this Object with.
-     *
      * @return true if both ActivityBuilders have only disjoint outputsets.
      */
     public boolean outputSetsAreDisjoint(ActivityBuilder otherActivity) {
         for (DataFlow dataFlow : outgoingDataFlow) {
             for (DataFlow otherFlow : otherActivity.outgoingDataFlow) {
-                if (((DataObject)dataFlow.getTarget()).getOlc()
+                if (((DataObject) dataFlow.getTarget()).getOlc()
                         .equals(((DataObject) otherFlow.getTarget()).getOlc())) {
                     return false;
                 }
@@ -506,13 +504,12 @@ public class ActivityBuilder {
      * of each Input Data Object.
      *
      * @param otherActivity The ActivityBuilder Object to Compare this Object with.
-     *
      * @return true if both ActivityBuilders have only disjoint input sets.
      */
     public boolean inputSetsAreDisjoint(ActivityBuilder otherActivity) {
         for (DataFlow dataFlow : incomingDataFlow) {
             for (DataFlow otherFlow : otherActivity.incomingDataFlow) {
-                if (((DataObject)dataFlow.getSource()).getOlc()
+                if (((DataObject) dataFlow.getSource()).getOlc()
                         .equals(((DataObject) otherFlow.getSource()).getOlc())) {
                     return false;
                 }
@@ -544,6 +541,15 @@ public class ActivityBuilder {
         return activity;
     }
 
+    /**
+     * Adds an Event as the predecessor.
+     * The event should be of Type START.
+     * It will create a new control flow edge add it to the incomingControlFlowEdges
+     * and to the outgoing ones of the start Event.
+     *
+     * @param startEvent The event to be added.
+     * @return Returns the created ControlFlow edge.
+     */
     public ControlFlow addPredecessor(Event startEvent) {
         ControlFlow incoming = new ControlFlow(startEvent, activity);
         if (incomingControlFlow == null) {
@@ -554,6 +560,14 @@ public class ActivityBuilder {
         return incoming;
     }
 
+    /**
+     * Adds an Gateway as the predecessor.
+     * It will create a new control flow edge add it to the incomingControlFlowEdges
+     * and to the outgoing ones of the Gateway.
+     *
+     * @param gateway The Gateway to be added.
+     * @return Returns the created ControlFlow edge.
+     */
     public ControlFlow addPredecessor(Gateway gateway) {
         ControlFlow incoming = new ControlFlow(gateway, activity);
         if (incomingControlFlow == null) {
@@ -567,25 +581,35 @@ public class ActivityBuilder {
         } while (!(predecessor instanceof Activity ||
                 predecessor instanceof Event));
         if (predecessor instanceof Activity) {
-            predecessors.add(getActivityBuilderForActivity((Activity)predecessor));
+            predecessors.add(getActivityBuilderForActivity((Activity) predecessor));
         }
         return incoming;
     }
 
     /**
      * Returns the ActivityBuilder of an activity by accessing the flyweight object.
+     *
      * @param predecessor The Activity
      * @return The received Activity Builder.
      */
     private ActivityBuilder getActivityBuilderForActivity(Activity predecessor) {
         for (Object builder : flyweight.getActivityBuilders()) {
-            if (((ActivityBuilder)builder).activity.equals(predecessor)) {
-                return (ActivityBuilder)builder;
+            if (((ActivityBuilder) builder).activity.equals(predecessor)) {
+                return (ActivityBuilder) builder;
             }
         }
         return null;
     }
 
+    /**
+     * Adds another ActivityBuilder as predecessor.
+     * It will add the newly created control flow edgge to the list
+     * of incomingControlFlows and to hte list of outgoingControlFlows
+     * of the other ActivityBuilder.
+     *
+     * @param builder The Activity Builder representing the predecessor.
+     * @return Returns the newly created edge.
+     */
     public ControlFlow addPredecessor(ActivityBuilder builder) {
         ControlFlow incoming = new ControlFlow(builder.activity, this.activity);
         if (incomingControlFlow == null) {
@@ -639,11 +663,11 @@ public class ActivityBuilder {
 
     /**
      * This method initializes the list of successor Activities.
-     *
+     * <p>
      * Pre: {@link #pets} and {@link #enabledCTs} must be initialized.
      */
     private void initSuccessorActivities() {
-        assert pets != null :  "pets have to be initialized";
+        assert pets != null : "pets have to be initialized";
         assert enabledCTs != null : "enabledCTs have to be initialized";
         Collection<DataObjectState> states = statesAvailableAfterTermination();
         successorActivities = new HashSet<>();
@@ -658,7 +682,7 @@ public class ActivityBuilder {
 
     /**
      * Determine outgoing control flow.
-     *
+     * <p>
      * Pre: The Successors have to be initialized.
      */
     public void establishOutgoingControlFlow() {
@@ -729,7 +753,7 @@ public class ActivityBuilder {
 
     /**
      * This method establishes the incoming control flow.
-     *
+     * <p>
      * Means if this activity has more than one incoming edge
      * an gateway will be established.
      */

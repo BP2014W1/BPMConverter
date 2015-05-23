@@ -146,9 +146,28 @@ Once you have created process models with the classes described above (or with a
 The \textit{subpackages} indicate the source of the generation.
 \textit{OLC} subpackage transforms object life cycles, \textit{activity\_centric} Activity Centric Process Models and \textit{pcm} Production Case Management scenarios (A collection of Activity Centric Process Models).
 Figure \ref{fig:transformations} shows which transformations can be made.
+Table \ref{tbl:transformations} shows which class provides methods for the transformations.
 \begin{figure}[h]
 \centering
 \includegraphics{images/transformation.PNG}
 \caption{Possible transformations}
 \label{fig:transformations}
 \end{figure}
+\begin{table}[h]
+\centering
+	\begin{tabular}{|p{0.3\textwidth}|p{0.3\textwidth}|p{0.3\textwidth}|}
+		\hline
+		\textbf{input} & \textbf{output} & \textbf{class name}\\
+		\hline
+		ActivityCentricProcess-Model & SynchronizedObjectLife-Cycle & ActivityCentricTo-SynchronizedOLC\\
+		\hline
+		2x Collection\textless ObjectLifeCycle\textgreater  & Collection\textless Activity-CentricProcessModel\textgreater & FragmentsFromOLC-Versions\\
+		\hline
+		SynchronizedObject-LifeCycle & ActivityCentricProcess-Model & SynchrnoizedOLCTo-ActivityCentric\\
+		\hline
+		Collection\textless Activity-CentricProcessModel\textgreater  & Collection\textless ObjectLife-Cycle\textgreater  & ScenarioToSynchronized-OLC\\
+	\hline
+	\end{tabular}
+\label{tbl:transformations}
+\caption{Class that provide transformation algorithms}
+\end{table}

@@ -106,8 +106,8 @@ public class SynchronizedOLCToActivityCentric implements IConverter {
             Collection<CombinedTransition> concurrentCombinedTransitions =
                     determineConcurrentCTs(exclusive);
             nodeBuilderNodesChecked.addAll(determineEnabledCTsAndCheckedNodes(concurrentCombinedTransitions));
-            Collection<ActivityBuilder> newNodes = getNewNodes();
             nodesToBeChecked.removeAll(nodeBuilderNodesChecked);
+            Collection<ActivityBuilder> newNodes = getNewNodes();
             nodesToBeChecked.addAll(newNodes);
             establishControlFlow(nodeBuilderNodesChecked);
         } while (!nodesToBeChecked.isEmpty());

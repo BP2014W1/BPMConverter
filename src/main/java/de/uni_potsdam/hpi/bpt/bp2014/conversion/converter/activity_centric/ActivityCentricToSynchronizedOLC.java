@@ -162,12 +162,14 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
             for (DataObjectState predecessor : entry.getValue()) {
                 if (currentStates.containsKey(entry.getKey())) {
                     for (DataObjectState successor : currentStates.get(entry.getKey())) {
-                        StateTransition transition =
-                                new StateTransition(predecessor,
-                                        successor,
-                                        (node == null) ? "t" : ((Activity) node).getName());
-                        predecessor.addOutgoingEdge(transition);
-                        successor.addIncomingEdge(transition);
+                        if (node != null || !predecessor.equals(successor)) {
+                            StateTransition transition =
+                                    new StateTransition(predecessor,
+                                            successor,
+                                            (node == null) ? "t" : ((Activity) node).getName());
+                            predecessor.addOutgoingEdge(transition);
+                            successor.addIncomingEdge(transition);
+                        }
                     }
                 }
             }

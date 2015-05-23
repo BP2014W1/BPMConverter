@@ -90,134 +90,45 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
         identifyDistinctDataStates();
         extractTraces();
         for (List<INode> trace : traces) {
-            Map<String, Collection<DataObjectState>> stateCollections = new HashMap<>();
-            for (ObjectLifeCycle olc : olcs) {
-                Collection<DataObjectState> stateCollection = new HashSet<>();
-                stateCollection.add((DataObjectState) olc.getStartNode());
-                stateCollections.put(olc.getLabel(), stateCollection);
-            }
+            new HashMap<>();
+            Map<String, Collection<DataObjectState>> stateCollections = getInitialStateCollections();
             for (INode node : trace) {
-                Map<String, Collection<DataObjectState>> currentStates = new HashMap<>();
                 if (node instanceof Activity) {
-                    for (IEdge incomingDF : node.getIncomingEdgesOfType(DataFlow.class)) {
-                        DataObject dataObject = (DataObject) incomingDF.getSource();
-                        if (currentStates.get(dataObject.getName()) == null) {
-                            currentStates.put(dataObject.getName(),
-                                    new HashSet<DataObjectState>());
-                        }
-                        currentStates.get(dataObject.getName()).add(dataObject.getState());
-                    }
-                    for (Map.Entry<String, Collection<DataObjectState>> entry
-                            : stateCollections.entrySet()) {
-                        for (DataObjectState predecessor : entry.getValue()) {
-                            if (currentStates.containsKey(entry.getKey())) {
-                                for (DataObjectState successor : currentStates.get(entry.getKey())) {
-                                    if (!predecessor.equals(successor)) {
-                                        StateTransition transition =
-                                                new StateTransition(predecessor,
-                                                        successor,
-                                                        "t"/*((Activity) node).getName()*/);
-                                        predecessor.addOutgoingEdge(transition);
-                                        successor.addIncomingEdge(transition);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    for (Map.Entry<String, Collection<DataObjectState>> entry :
-                            currentStates.entrySet()) {
-                        List<StateTransition> links = new ArrayList<>();
-                        for (Map.Entry<String, Collection<DataObjectState>> entry2
-                                : currentStates.entrySet()) {
-                            if (!entry.getKey().equals(entry2.getKey())) {
-                                for (DataObjectState state : entry2.getValue()) {
-                                    for (IEdge transition :
-                                            state.getIncomingEdgesOfType(StateTransition.class)) {
-                                        if (stateCollections.get(entry2.getKey())
-                                                .contains(transition.getSource())) {
-                                            links.add((StateTransition) transition);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        for (DataObjectState state : entry.getValue()) {
-                            for (IEdge transition :
-                                    state.getIncomingEdgesOfType(StateTransition.class)) {
-                                if (stateCollections.get(entry.getKey())
-                                        .contains(transition.getSource())) {
-                                    synchronisationEdges.put((StateTransition) transition, links);
-                                }
-                            }
-                        }
-                    }
-
-                    for (Map.Entry<String, Collection<DataObjectState>> entry :
-                            currentStates.entrySet()) {
-                        stateCollections.put(entry.getKey(), entry.getValue());
-                    }
-                    currentStates = new HashMap<>();
-                    for (IEdge outgoingDF : node.getOutgoingEdgesOfType(DataFlow.class)) {
-                        DataObject dataObject = (DataObject) outgoingDF.getTarget();
-                        if (currentStates.get(dataObject.getName()) == null) {
-                            currentStates.put(dataObject.getName(),
-                                    new HashSet<DataObjectState>());
-                        }
-                        currentStates.get(dataObject.getName()).add(dataObject.getState());
-                    }
-                    for (Map.Entry<String, Collection<DataObjectState>> entry
-                            : stateCollections.entrySet()) {
-                        for (DataObjectState predecessor : entry.getValue()) {
-                            if (currentStates.containsKey(entry.getKey())) {
-                                for (DataObjectState successor : currentStates.get(entry.getKey())) {
-                                    StateTransition transition =
-                                            new StateTransition(predecessor,
-                                                    successor,
-                                                    ((Activity) node).getName());
-                                    predecessor.addOutgoingEdge(transition);
-                                    successor.addIncomingEdge(transition);
-                                }
-                            }
-                        }
-                    }
-                    for (Map.Entry<String, Collection<DataObjectState>> entry :
-                            currentStates.entrySet()) {
-                        List<StateTransition> links = new ArrayList<>();
-                        for (Map.Entry<String, Collection<DataObjectState>> entry2
-                                : currentStates.entrySet()) {
-                            if (!entry.getKey().equals(entry2.getKey())) {
-                                for (DataObjectState state : entry2.getValue()) {
-                                    for (IEdge transition :
-                                            state.getIncomingEdgesOfType(StateTransition.class)) {
-                                        if (stateCollections.get(entry2.getKey())
-                                                .contains(transition.getSource())) {
-                                            links.add((StateTransition) transition);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        for (DataObjectState state : entry.getValue()) {
-                            for (IEdge transition :
-                                    state.getIncomingEdgesOfType(StateTransition.class)) {
-                                if (stateCollections.get(entry.getKey())
-                                        .contains(transition.getSource())) {
-                                    synchronisationEdges.put((StateTransition) transition, links);
-                                }
-                            }
-                        }
-                    }
-
-                    for (Map.Entry<String, Collection<DataObjectState>> entry :
-                            currentStates.entrySet()) {
-                        stateCollections.put(entry.getKey(), entry.getValue());
-                    }
-                } else if (node instanceof Gateway &&
-                        ((Gateway) node).getType().equals(Gateway.Type.XOR)) {
-                    // Currently we do not support edge conditions
+                    Map<String, Collection<DataObjectState>> currentStates = extractCurrentStates(node);
+                    connectStatesForActivity(stateCollections, currentStates, null);
+                    establishSynchronizationEdges(stateCollections, currentStates);
+                    stateCollections.putAll(currentStates);
+                    currentStates = getStatesAfterNode(node);
+                    connectStatesForActivity(stateCollections, currentStates, (Activity) node);
+                    establishSynchronizationEdges(stateCollections, currentStates);
+                    stateCollections.putAll(currentStates);
                 }
             }
         }
+        detectFinalStates();
+
+        return buildSynchronizedObjectLifeCycle();
+    }
+
+    /**
+     * Creates an synchronized Object Life Cycle for all OLCs
+     * created during the conversion.
+     * @return The synchronized object life cycle which has been created.
+     */
+    private IModel buildSynchronizedObjectLifeCycle() {
+        SynchronizedObjectLifeCycle synchOLC = new SynchronizedObjectLifeCycle();
+        synchOLC.setObjectLifeCycles(new LinkedList<>(olcs));
+        synchOLC.setSynchronisationEdges(synchronisationEdges);
+        return synchOLC;
+    }
+
+    /**
+     * This method detects all final states.
+     * If a state has no outgoing edges it is considered final.
+     * Such a state will be added to collection and than marked as
+     * final for the specific object life cycle.
+     */
+    private void detectFinalStates() {
         for (Map.Entry<ObjectLifeCycle, Collection<DataObjectState>> entry
                 : dataStatesPerOLC.entrySet()) {
             Collection<DataObjectState> finalStates = new HashSet<>();
@@ -231,10 +142,128 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
                 entry.getKey().addFinalNode(finalState);
             }
         }
-        SynchronizedObjectLifeCycle synchOLC = new SynchronizedObjectLifeCycle();
-        synchOLC.setObjectLifeCycles(new LinkedList<>(olcs));
-        synchOLC.setSynchronisationEdges(synchronisationEdges);
-        return synchOLC;
+    }
+
+
+    /**
+     * Establishes state transitions between the predecessor and successor states.
+     * The transition represents an action taken by an activity.
+     * If the activity is null the action will be a silent transition marked with "t".
+     *
+     * @param stateCollections The collection of all states mapped to the name of the OLC.
+     * @param currentStates    The currently extracted States mapped.
+     * @param node             The node representing the action.
+     */
+    private void connectStatesForActivity(Map<String, Collection<DataObjectState>> stateCollections,
+                                          Map<String, Collection<DataObjectState>> currentStates,
+                                          Activity node) {
+        for (Map.Entry<String, Collection<DataObjectState>> entry
+                : stateCollections.entrySet()) {
+            for (DataObjectState predecessor : entry.getValue()) {
+                if (currentStates.containsKey(entry.getKey())) {
+                    for (DataObjectState successor : currentStates.get(entry.getKey())) {
+                        StateTransition transition =
+                                new StateTransition(predecessor,
+                                        successor,
+                                        (node == null) ? "t" : ((Activity) node).getName());
+                        predecessor.addOutgoingEdge(transition);
+                        successor.addIncomingEdge(transition);
+                    }
+                }
+            }
+        }
+
+    }
+
+    /**
+     * Returns a map containing all data nodes created by a given node.
+     * In general the node should be of type {@link Activity}.
+     * In that case the map would contain the states of the data outputs.
+     * In addition it maps the data object name to the data object states.
+     * This indicates all possible states after the termination.
+     *
+     * @param node The node which outgoing dataflow edges will be checked.
+     * @return Returns a map, containing the data object names (key) and a Collection of
+     * states of the data object (value).
+     */
+    private Map<String, Collection<DataObjectState>> getStatesAfterNode(INode node) {
+        Map<String, Collection<DataObjectState>> currentStates = new HashMap<>();
+        for (IEdge outgoingDF : node.getOutgoingEdgesOfType(DataFlow.class)) {
+            DataObject dataObject = (DataObject) outgoingDF.getTarget();
+            if (currentStates.get(dataObject.getName()) == null) {
+                currentStates.put(dataObject.getName(),
+                        new HashSet<DataObjectState>());
+            }
+            currentStates.get(dataObject.getName()).add(dataObject.getState());
+        }
+        return currentStates;
+    }
+
+    /**
+     * This method establishes the synchronization edges.
+     * Therefore it checks for all entries of the current States and for each state which is
+     * different a link will added.
+     * Then the incoming edges will synchronized.
+     * TODO: Check if this works - there might be some wrong connections.
+     *
+     * @param stateCollections The collection of all states in a map.
+     *                         it maps from the data object name to a collection of the states.
+     * @param currentStates The map of all possible enabled states per data object.
+     *                      The relation between data object and states is expressed by the map.
+     */
+    private void establishSynchronizationEdges(Map<String, Collection<DataObjectState>> stateCollections,
+                                               Map<String, Collection<DataObjectState>> currentStates) {
+        for (Map.Entry<String, Collection<DataObjectState>> entry :
+                currentStates.entrySet()) {
+            List<StateTransition> links = new ArrayList<>();
+            for (Map.Entry<String, Collection<DataObjectState>> entry2
+                    : currentStates.entrySet()) {
+                if (!entry.getKey().equals(entry2.getKey())) {
+                    for (DataObjectState state : entry2.getValue()) {
+                        for (IEdge transition :
+                                state.getIncomingEdgesOfType(StateTransition.class)) {
+                            if (stateCollections.get(entry2.getKey())
+                                    .contains(transition.getSource())) {
+                                links.add((StateTransition) transition);
+                            }
+                        }
+                    }
+                }
+            }
+            for (DataObjectState state : entry.getValue()) {
+                for (IEdge transition :
+                        state.getIncomingEdgesOfType(StateTransition.class)) {
+                    if (stateCollections.get(entry.getKey())
+                            .contains(transition.getSource())) {
+                        synchronisationEdges.put((StateTransition) transition, links);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * This method extracts the current states from a node.
+     * Current states are the states available before the execution.
+     * Therefore it checks all the incoming DataFlowEdges and adds the state
+     * of the DataInput.
+     * These states will be clustered by the name of the data object/ data class / olc.
+     *
+     * @param node The node to be checked. Should be an Activity but is not mandatory.
+     * @return A Map, the key is the name of the data object, the value is a collection
+     * with all the states available before the activity.
+     */
+    private Map<String, Collection<DataObjectState>> extractCurrentStates(INode node) {
+        Map<String, Collection<DataObjectState>> currentStates = new HashMap<>();
+        for (IEdge incomingDF : node.getIncomingEdgesOfType(DataFlow.class)) {
+            DataObject dataObject = (DataObject) incomingDF.getSource();
+            if (currentStates.get(dataObject.getName()) == null) {
+                currentStates.put(dataObject.getName(),
+                        new HashSet<DataObjectState>());
+            }
+            currentStates.get(dataObject.getName()).add(dataObject.getState());
+        }
+        return currentStates;
     }
 
 
@@ -258,47 +287,79 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
         tracesAndTheirSuccessors.put(startConfig, successors);
         boolean groupsContainFinal;
         do {
-            groupsContainFinal = true;
             Collection<List<INode>> tracesToBeRemoved = new HashSet<>();
-            for (Map.Entry<List<INode>, Collection<List<INode>>> traceAndSuccessors
-                    : tracesAndTheirSuccessors.entrySet()) {
-                List<INode> trace = traceAndSuccessors.getKey();
-                Collection<List<INode>> successorsOfTrace = traceAndSuccessors.getValue();
-                if (successorsOfTrace.isEmpty() && !trace.contains(acpm.getFinalNodesOfClass(Event.class)
-                        .iterator().next())) {
-                    tracesToBeRemoved.add(trace);
-                }
-                if (groupsContainFinal && !trace.contains(acpm.getFinalNodesOfClass(Event.class)
-                        .iterator().next())) {
-                    groupsContainFinal = false;
-                }
-            }
-            for (List<INode> trace : tracesToBeRemoved) {
-                tracesAndTheirSuccessors.remove(trace);
-            }
+            groupsContainFinal = getTracesToBeRemoved(tracesAndTheirSuccessors, tracesToBeRemoved);
+            tracesAndTheirSuccessors.keySet().removeAll(tracesToBeRemoved);
             Map<List<INode>, Collection<List<INode>>>
-                    newTracesAndTheirSuccessors = new HashMap<>();
-            for (Map.Entry<List<INode>, Collection<List<INode>>>
-                    traceAndSuccessors : tracesAndTheirSuccessors.entrySet()) {
-                if (traceAndSuccessors.getValue().isEmpty()) {
-                    newTracesAndTheirSuccessors.put(traceAndSuccessors.getKey(),
-                            traceAndSuccessors.getValue());
-                }
-                for (List<INode> successorGroup : traceAndSuccessors.getValue()) {
-                    for (INode successor : successorGroup) {
-                        List<INode> trace = new ArrayList<>(traceAndSuccessors.getKey());
-                        trace.add(successor);
-                        newTracesAndTheirSuccessors.put(trace,
-                                getSuccessorsFor(trace, successorGroup, successor));
-
-                    }
-                }
-            }
+                    newTracesAndTheirSuccessors = determineNewTraces(tracesAndTheirSuccessors);
             if (!newTracesAndTheirSuccessors.isEmpty()) {
                 tracesAndTheirSuccessors = newTracesAndTheirSuccessors;
             }
         } while (!groupsContainFinal);
         traces = new HashSet<>(tracesAndTheirSuccessors.keySet());
+    }
+
+    /**
+     * This method determines the new traces.
+     * Based on a given trace and a given group of successors it will create all possible traces
+     * with their successor Groups.
+     * Those will be added to list and then returned.
+     * @param tracesAndTheirSuccessors The traces and successors. The key represents the trace (list of nodes)
+     *                                 and the value the possible successor groups. Each list of the value collection
+     *                                 is exclusive, the elements inside such a list parallel.
+     * @return The Map representing the new traces and their succesors.
+     */
+    private Map<List<INode>, Collection<List<INode>>> determineNewTraces(
+            Map<List<INode>, Collection<List<INode>>> tracesAndTheirSuccessors) {
+        Map<List<INode>, Collection<List<INode>>>
+                newTracesAndTheirSuccessors = new HashMap<>();
+        for (Map.Entry<List<INode>, Collection<List<INode>>>
+                traceAndSuccessors : tracesAndTheirSuccessors.entrySet()) {
+            if (traceAndSuccessors.getValue().isEmpty()) {
+                newTracesAndTheirSuccessors.put(traceAndSuccessors.getKey(),
+                        traceAndSuccessors.getValue());
+            }
+            for (List<INode> successorGroup : traceAndSuccessors.getValue()) {
+                for (INode successor : successorGroup) {
+                    List<INode> trace = new ArrayList<>(traceAndSuccessors.getKey());
+                    trace.add(successor);
+                    newTracesAndTheirSuccessors.put(trace,
+                            getSuccessorsFor(trace, successorGroup, successor));
+
+                }
+            }
+        }
+        return newTracesAndTheirSuccessors;
+    }
+
+    /**
+     * Determins all traces which have to be removed.
+     * Traces who have not successor and no final node inside the trace will be removed.
+     * The traces will be saved inside the map given as a second paramter.
+     * @param tracesAndTheirSuccessors The Collection of all Traces (List of Nodes) and their possible Successors.
+     *                                 The successors are saved inside a Collection of Lists of Nodes. The nodes inside
+     *                                 a List a parallel the lists are exclusive.
+     * @param tracesToBeRemoved
+     * @return Returns true if every group contains a final node. Else it returns false.
+     */
+    private boolean getTracesToBeRemoved(
+            Map<List<INode>, Collection<List<INode>>> tracesAndTheirSuccessors,
+            Collection<List<INode>> tracesToBeRemoved) {
+        boolean groupsContainFinal = true;
+        for (Map.Entry<List<INode>, Collection<List<INode>>> traceAndSuccessors
+                : tracesAndTheirSuccessors.entrySet()) {
+            List<INode> trace = traceAndSuccessors.getKey();
+            Collection<List<INode>> successorsOfTrace = traceAndSuccessors.getValue();
+            if (successorsOfTrace.isEmpty() && !trace.contains(acpm.getFinalNodesOfClass(Event.class)
+                    .iterator().next())) {
+                tracesToBeRemoved.add(trace);
+            }
+            if (groupsContainFinal && !trace.contains(acpm.getFinalNodesOfClass(Event.class)
+                    .iterator().next())) {
+                groupsContainFinal = false;
+            }
+        }
+        return groupsContainFinal;
     }
 
     /**
@@ -388,7 +449,7 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
      * Extracts all states from the Activity Centric Process model.
      * For each Data Object (identified by the name of the {@link DataObject} node)
      * the state will be extracted and added to the {@link #dataStatesPerOLC} Map.
-     *
+     * <p>
      * Calling this method twice would discard the results of the first run.
      */
     private void identifyDistinctDataStates() {
@@ -407,6 +468,7 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
      * The first Object Life Cycle with the name specified by the parameter
      * will be returned.
      * If no OLC was found null will be returned.
+     *
      * @param name The name of the Object Life Cycle.
      * @return The first Object Life Cycle matching the criteria or null.
      */
@@ -445,5 +507,24 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
             return (T) convert((ActivityCentricProcessModel) model);
         }
         return null;
+    }
+
+    /**
+     * Creates an Map which contains all the initial States
+     * for every objectLife Cycle.
+     * The Object Life Cycle is identified by the name.
+     * key: Object Life Cycle label
+     * value: Collection of Initial States.
+     *
+     * @return Returns the created map, for every olc.
+     */
+    public Map<String, Collection<DataObjectState>> getInitialStateCollections() {
+        Map<String, Collection<DataObjectState>> stateCollections = new HashMap<>();
+        for (ObjectLifeCycle olc : olcs) {
+            Collection<DataObjectState> stateCollection = new HashSet<>();
+            stateCollection.add((DataObjectState) olc.getStartNode());
+            stateCollections.put(olc.getLabel(), stateCollection);
+        }
+        return stateCollections;
     }
 }

@@ -211,38 +211,29 @@ public class OLCConversionFlyweight<T extends IModel> {
         endEvent.setType(Event.Type.END);
         modelUnderConstruction.addNode(endEvent);
         modelUnderConstruction.addFinalNode(endEvent);
-        Collection<Activity> finalActivities = new HashSet<>();
-        for (Map.Entry<Activity, Collection<ControlFlow>> entry :
-                incomingEdgesOfNOP.entrySet()) {
-            if (entry.getValue().size() == 1) {
-                entry.getKey().addIncomingEdge(
-                        entry.getValue().iterator().next());
-            } else {
-                Gateway xor = new Gateway();
-                xor.setType(Gateway.Type.XOR);
-                for (ControlFlow flow : entry.getValue()) {
-                    flow.setTarget(xor);
-                    xor.addIncomingEdge(flow);
-                }
-                ControlFlow incoming = new ControlFlow(xor, entry.getKey());
-                Collection<ControlFlow> incomingFlow = new HashSet<>();
-                xor.addOutgoingEdge(incoming);
-                incomingFlow.add(incoming);
-                entry.setValue(incomingFlow);
-                entry.getKey().addIncomingEdge(incoming);
-                modelUnderConstruction.addNode(xor);
-            }
+        establishIncomingControlFlowForNOP();
+        Collection<Activity> finalActivities = buildActivitiesAndDetectFinal();
+        establishIncomingControlFlowOfEndEvent(endEvent, finalActivities);
+        for (DataObject dataObject : dataObjectsPerState.values()) {
+            modelUnderConstruction.addNode(dataObject);
         }
-        for (ActivityBuilder activityBuilder : builderPerCombinedTransition.values()) {
-            Activity activity = activityBuilder.build();
-            finalActivities.addAll(activityBuilder.getNopActivities());
-            if (activity.getOutgoingEdgesOfType(ControlFlow.class).isEmpty()) {
-                finalActivities.add(activity);
-            }
-            modelUnderConstruction.addNode(
-                    activity
-            );
-        }
+    }
+
+    /**
+     * This method establishes the incoming control flow for the end event.
+     * There for it iterates over the collection of final Activities.
+     * If there is only one final Activity it will be added as the predecessor of the end event.
+     * Therefore, a control flow edge from the Activity to the Event will be added.
+     * If there are more final Activities and End gateway will be established.
+     * All final activities will be predecessor of this activity.
+     * The End Event will be the successor.
+     *
+     * Handling of nopActivities: the nop activities will be removed during this process.
+     * Which means instead of the nop activities the direct predeccessor will be linked.
+     * @param endEvent The end event of the process model.
+     * @param finalActivities The list of final activities.
+     */
+    private void establishIncomingControlFlowOfEndEvent(Event endEvent, Collection<Activity> finalActivities) {
         if (finalActivities.size() == 1) {
             Activity finalActivity = finalActivities.iterator().next();
             if (nopActivitiesForFinalStates.values().contains(finalActivity)) {
@@ -275,8 +266,61 @@ public class OLCConversionFlyweight<T extends IModel> {
             endEvent.addIncomingEdge(cf);
             modelUnderConstruction.addNode(xor);
         }
-        for (DataObject dataObject : dataObjectsPerState.values()) {
-            modelUnderConstruction.addNode(dataObject);
+    }
+
+    /**
+     * This method creates/builds an Activity for every
+     * Activity Builder.
+     * If an activity is NOP activity or if an activity as no outgoing
+     * edge it will be added to the final Activities.
+     *
+     * @return The Collection of final Activities.
+     */
+    private Collection<Activity> buildActivitiesAndDetectFinal() {
+        Collection<Activity> finalActivities = new HashSet<>();
+        for (ActivityBuilder activityBuilder : builderPerCombinedTransition.values()) {
+            Activity activity = activityBuilder.build();
+            finalActivities.addAll(activityBuilder.getNopActivities());
+            if (activity.getOutgoingEdgesOfType(ControlFlow.class).isEmpty()) {
+                finalActivities.add(activity);
+            }
+            modelUnderConstruction.addNode(
+                    activity
+            );
+        }
+        return finalActivities;
+    }
+
+    /**
+     * This method establishes the incoming control Flow for the NOP Activities.
+     * The NOP Activities will be removed and if necessary an (XOR)Gateway
+     * will be added.
+     * If there is exactly one incoming transition - control flow
+     * If there is more tan one edge - XOR + Control Flow
+     *
+     * The edges will be added to the nodes.
+     */
+    private void establishIncomingControlFlowForNOP() {
+        for (Map.Entry<Activity, Collection<ControlFlow>> entry :
+                incomingEdgesOfNOP.entrySet()) {
+            if (entry.getValue().size() == 1) {
+                entry.getKey().addIncomingEdge(
+                        entry.getValue().iterator().next());
+            } else {
+                Gateway xor = new Gateway();
+                xor.setType(Gateway.Type.XOR);
+                for (ControlFlow flow : entry.getValue()) {
+                    flow.setTarget(xor);
+                    xor.addIncomingEdge(flow);
+                }
+                ControlFlow incoming = new ControlFlow(xor, entry.getKey());
+                Collection<ControlFlow> incomingFlow = new HashSet<>();
+                xor.addOutgoingEdge(incoming);
+                incomingFlow.add(incoming);
+                entry.setValue(incomingFlow);
+                entry.getKey().addIncomingEdge(incoming);
+                modelUnderConstruction.addNode(xor);
+            }
         }
     }
 

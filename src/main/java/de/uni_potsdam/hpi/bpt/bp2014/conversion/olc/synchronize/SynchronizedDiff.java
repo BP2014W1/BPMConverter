@@ -11,7 +11,7 @@ import java.util.*;
 public class SynchronizedDiff extends SynchronizedObjectLifeCycle {
     public  SynchronizedDiff(Collection<? extends ObjectLifeCycle> oldOLCs,
                              Collection<? extends ObjectLifeCycle> newOLCs) {
-        Collection<ObjectLifeCycleDiff> groupedOLC = groupOLCVersions(oldOLCs, newOLCs);
+        Collection<? extends ObjectLifeCycle> groupedOLC = groupOLCVersions(oldOLCs, newOLCs);
         super.setObjectLifeCycles(new LinkedList<>(groupedOLC));
     }
 

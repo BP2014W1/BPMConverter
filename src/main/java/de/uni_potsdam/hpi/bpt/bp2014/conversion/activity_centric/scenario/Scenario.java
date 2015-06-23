@@ -61,7 +61,7 @@ public class Scenario implements IModel {
     public <T extends INode> List<T> getNodesOfClass(Class clazz) {
         List<T> nodes = new LinkedList<>();
         for (ActivityCentricProcessModel fragment : fragments) {
-            nodes.addAll(fragment.getNodesOfClass(clazz));
+            nodes.addAll((List<T>)fragment.getNodesOfClass(clazz));
         }
         return nodes;
     }
@@ -94,7 +94,7 @@ public class Scenario implements IModel {
     public <T extends INode> List<T> getFinalNodesOfClass(Class clazz) {
         List<T> nodes = new LinkedList<>();
         for (ActivityCentricProcessModel fragment : fragments) {
-            nodes.addAll(fragment.getFinalNodesOfClass(clazz));
+            nodes.addAll((List<T>)fragment.getFinalNodesOfClass(clazz));
         }
         return nodes;
     }

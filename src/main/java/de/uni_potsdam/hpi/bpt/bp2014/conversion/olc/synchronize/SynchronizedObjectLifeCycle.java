@@ -66,7 +66,7 @@ public class SynchronizedObjectLifeCycle implements IModel {
      */
     @Override
     public void addNode(INode newNode) {
-        // Do nothing
+        throw new UnsupportedOperationException("You cannot add a node to a synchronized OLC");
     }
 
     /**
@@ -106,7 +106,7 @@ public class SynchronizedObjectLifeCycle implements IModel {
      */
     @Override
     public void setStartNode(INode startNode) {
-        // Not supported
+        throw new UnsupportedOperationException("A synchronized OLC has not specific start node.");
     }
 
     /**
@@ -115,7 +115,7 @@ public class SynchronizedObjectLifeCycle implements IModel {
      */
     @Override
     public void addFinalNode(INode finalNode) {
-        // Not supported
+        throw new UnsupportedOperationException("You cannot add a node to a synchronized OLC");
     }
 
     /**

@@ -1,6 +1,5 @@
 package de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.scenario;
 
-import com.sun.xml.internal.ws.addressing.model.ActionNotSupportedException;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IModel;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.INode;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.ActivityCentricProcessModel;
@@ -54,7 +53,7 @@ public class Scenario implements IModel {
 
     @Override
     public void addNode(INode newNode) {
-        throw new ActionNotSupportedException("You cannot add nodes to a scenario");
+        throw new UnsupportedOperationException("You cannot add nodes to a scenario");
         // Action not supported
     }
 
@@ -69,17 +68,17 @@ public class Scenario implements IModel {
 
     @Override
     public INode getStartNode() {
-        throw new ActionNotSupportedException("There is more than one start node, check each fragment");
+        throw new UnsupportedOperationException("There is more than one start node, check each fragment");
     }
 
     @Override
     public void setStartNode(INode startNode) {
-        throw new ActionNotSupportedException("You cannot set the start node of a scenario.");
+        throw new UnsupportedOperationException("You cannot set the start node of a scenario.");
     }
 
     @Override
     public void addFinalNode(INode finalNode) {
-        throw new ActionNotSupportedException("The model is final, change the fragments instead");
+        throw new UnsupportedOperationException("The model is final, change the fragments instead");
     }
 
     @Override

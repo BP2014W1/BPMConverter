@@ -21,7 +21,7 @@ import java.util.LinkedList;
  * State transitions will be mapped on Activities and Data Objects nodes
  * on Data Object States.
  */
-public class SynchronizedOLCToActivityCentric implements IConverter {
+public class SynchronizedOLCToActivityCentric implements IConverter<SynchronizedObjectLifeCycle, ActivityCentricProcessModel> {
     /**
      * The Synchronized Object Life Cycle which will be converted.
      */
@@ -67,6 +67,7 @@ public class SynchronizedOLCToActivityCentric implements IConverter {
      * @param sOLC The Synchronized Object Life Cycle which is the base for the conversion.
      * @return Returns the generated Activity Centric Process Model.
      */
+    @Override
     public ActivityCentricProcessModel convert(SynchronizedObjectLifeCycle sOLC) {
         synchronizedObjectLifeCycle = sOLC;
         return convert();
@@ -276,14 +277,6 @@ public class SynchronizedOLCToActivityCentric implements IConverter {
                         startStates));
             }
         }
-    }
-
-    @Override
-    public <T extends IModel> T convert(IModel model, Class<T> t) {
-        assert model instanceof SynchronizedObjectLifeCycle :
-                "The given model is not a synchronized OLC";
-        synchronizedObjectLifeCycle = (SynchronizedObjectLifeCycle) model;
-        return (T) convert();
     }
 
     /**

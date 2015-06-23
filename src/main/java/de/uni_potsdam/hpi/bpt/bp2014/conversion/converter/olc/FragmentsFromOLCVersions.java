@@ -1,6 +1,8 @@
 package de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.olc;
 
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.IConverter;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.*;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.scenario.Scenario;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.DataObjectState;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.ObjectLifeCycle;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.StateTransition;
@@ -15,7 +17,7 @@ import java.util.*;
  * Start Event and an Activity and one End Event.
  * The Fragments will represent additional combined transitions.
  */
-public class FragmentsFromOLCVersions {
+public class FragmentsFromOLCVersions implements IConverter<SynchronizedObjectLifeCycle, Scenario> {
 
     /**
      * A Collection of Object Life Cycles which represent
@@ -32,6 +34,7 @@ public class FragmentsFromOLCVersions {
      * @param newOLCs A Collection of Object Life Cycles representing the new version.
      * @return A Collection of Activity Centric Process Model - the fragments generated.
      */
+    @Deprecated
     public Collection<ActivityCentricProcessModel> convert(Collection<? extends ObjectLifeCycle> oldOLCs,
                                                            Collection<? extends ObjectLifeCycle> newOLCs) {
         Collection<ActivityCentricProcessModel> acpms = new HashSet<>();
@@ -135,4 +138,21 @@ public class FragmentsFromOLCVersions {
         return grouped;
     }
 
+    @Override
+    public Scenario convert(SynchronizedObjectLifeCycle model) {
+        Collection<ActivityCentricProcessModel> acpms = new HashSet<>();
+        OLCConversionFlyweight<ActivityCentricProcessModel> flyweight = null;
+        try {
+            flyweight = new OLCConversionFlyweight<>(model,
+                    ActivityCentricProcessModel.class);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        }
+        for (CombinedTransition combinedTransition : flyweight.getCombinedTransitions()) {
+            acpms.add(createFragment(combinedTransition));
+        }
+        return new Scenario(acpms);
+    }
 }

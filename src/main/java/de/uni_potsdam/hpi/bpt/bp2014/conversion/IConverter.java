@@ -6,14 +6,12 @@ package de.uni_potsdam.hpi.bpt.bp2014.conversion;
  * If you transform exactly one process model into exactly one model of another
  * representation you may use this interface.
  */
-public interface IConverter {
+public interface IConverter<T1 extends IModel, T2 extends IModel> {
 
     /**
      * This method should convert the model to a new model of type t/T.
      * @param model The model to be transformed.
-     * @param t The type of the new model.
-     * @param <T> The returned type.
-     * @return
+     * @return The generated model.
      */
-    <T extends IModel> T convert(IModel model, Class<T> t);
+    T2 convert(T1 model);
 }

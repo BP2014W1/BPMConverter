@@ -1,7 +1,9 @@
 package de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.pcm;
 
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.IConverter;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.IEdge;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.ActivityCentricProcessModel;
+import de.uni_potsdam.hpi.bpt.bp2014.conversion.activity_centric.scenario.Scenario;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.converter.activity_centric.ActivityCentricToSynchronizedOLC;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.DataObjectState;
 import de.uni_potsdam.hpi.bpt.bp2014.conversion.olc.ObjectLifeCycle;
@@ -15,7 +17,7 @@ import java.util.*;
  * based on a PCM Scenario. A PCM scenario is an aggregation of {@link ActivityCentricProcessModel}.
  * Hence a List of those models - called fragments - must be provided.
  */
-public class ScenarioToSynchronizedOLC {
+public class ScenarioToSynchronizedOLC implements IConverter<Scenario, SynchronizedObjectLifeCycle> {
 
     /**
      * The list of fragments representing the Production Case Management Scenario.
@@ -28,7 +30,7 @@ public class ScenarioToSynchronizedOLC {
     private Map<String, Collection<ObjectLifeCycle>> olcsPerDataClass;
     /**
      * A Collection holding the final Object Life Cycles which will be needed in order to
-     * build the synchronized object lfie cycle.
+     * build the synchronized object life cycle.
      */
     private Collection<ObjectLifeCycle> olcs;
 
@@ -162,5 +164,10 @@ public class ScenarioToSynchronizedOLC {
             }
         }
         return false;
+    }
+
+    @Override
+    public SynchronizedObjectLifeCycle convert(Scenario model) {
+        return convert(model.getFragments());
     }
 }

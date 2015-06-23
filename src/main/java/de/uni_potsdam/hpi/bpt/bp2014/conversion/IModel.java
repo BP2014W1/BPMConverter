@@ -23,11 +23,11 @@ public interface IModel {
     public void addNode(INode newNode);
 
     /**
-     * @param T The Type of the nodes to be returned.
+     * @param clazz The Type of the nodes to be returned.
      * @param <T> The Generics of the list to be returned.
      * @return Returns all nodes of a certain type. Final nodes and the start node may be included.
      */
-    public <T extends INode> List<T> getNodesOfClass(Class T);
+    public <T extends INode> List<T> getNodesOfClass(Class clazz);
 
     /**
      * @return Returns the start node of the process model or null if it has not been set.
@@ -56,9 +56,9 @@ public interface IModel {
     public List<INode> getFinalNodes();
 
     /**
-     * @param T The Type of the nodes. Only final nodes of this type should be returned.
+     * @param clazz The Type of the nodes. Only final nodes of this type should be returned.
      * @param <T> The type of the generic response.
      * @return Returns a List of type <T> for all final nodes of the specified Type T.
      */
-    public <T extends INode> List<T> getFinalNodesOfClass(Class T);
+    public <T extends INode> List<T> getFinalNodesOfClass(Class clazz);
 }

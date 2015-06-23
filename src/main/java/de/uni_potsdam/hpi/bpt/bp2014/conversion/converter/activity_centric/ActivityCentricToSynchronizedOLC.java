@@ -17,7 +17,7 @@ import java.util.*;
  * It offers methods to transform an {@link ActivityCentricProcessModel} into
  * a {@link SynchronizedObjectLifeCycle}.
  */
-public class ActivityCentricToSynchronizedOLC implements IConverter {
+public class ActivityCentricToSynchronizedOLC implements IConverter<ActivityCentricProcessModel, SynchronizedObjectLifeCycle> {
     /**
      * This variable holds an instance of {@link ActivityCentricProcessModel}.
      * It is model which will be converted into an
@@ -83,7 +83,8 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
      * @param acpm Is the Activity Centric Process Model to be converted.
      * @return The generated model, an instance of {@link SynchronizedObjectLifeCycle}
      */
-    public IModel convert(ActivityCentricProcessModel acpm) {
+    @Override
+    public SynchronizedObjectLifeCycle convert(ActivityCentricProcessModel acpm) {
         assert null != acpm : "Null can not be converted into a process model";
         this.acpm = acpm;
         initOLCs();
@@ -115,7 +116,7 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
      * created during the conversion.
      * @return The synchronized object life cycle which has been created.
      */
-    private IModel buildSynchronizedObjectLifeCycle() {
+    private SynchronizedObjectLifeCycle buildSynchronizedObjectLifeCycle() {
         SynchronizedObjectLifeCycle synchOLC = new SynchronizedObjectLifeCycle();
         synchOLC.setObjectLifeCycles(new LinkedList<>(olcs));
         synchOLC.setSynchronisationEdges(synchronisationEdges);
@@ -501,14 +502,6 @@ public class ActivityCentricToSynchronizedOLC implements IConverter {
             olc.setStartNode(initState);
             olcs.add(olc);
         }
-    }
-
-    @Override
-    public <T extends IModel> T convert(IModel model, Class<T> t) {
-        if (model instanceof ActivityCentricProcessModel) {
-            return (T) convert((ActivityCentricProcessModel) model);
-        }
-        return null;
     }
 
     /**

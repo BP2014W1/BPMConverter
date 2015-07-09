@@ -75,6 +75,26 @@ The Table \ref{tbl:acpm_elements} shows the elements of Activity Centric Process
 	\caption{Elements used by the activity centric process Model}
 	\label{tbl:acpm_elements}
 \end{table}
+
+Additionally, the scenario package contains a class (Table \ref{tbl:scenario}) to aggregate multiple activity centric process models into one scenario.
+
+
+\begin{table}[h]
+	\centering
+	\begin{tabular}{|l|l|p{8cm}|}
+		\hline
+		\textbf{class name} & \textbf{interface} & \textbf{restrictions}\\
+		\hline
+		Scenario & IModel & \begin{itemize}
+					\item Initialized from multiple ActivityCentricProcessModels
+					\item Altering is not possible
+				\end{itemize}\\
+		\hline
+	\end{tabular}
+	\caption{The Scenario}
+	\label{tbl:scenario}
+\end{table}
+
 \subsubsection{Object Life Cycle}
 
 Object Life Cycles are state transitions systems for one data class.
@@ -105,7 +125,7 @@ The Table \ref{tbl:acpm_elements} shows the elements of Activity Centric Process
 		ObjectLifeCycle & IModel & \begin{itemize}
 			\item Every node must be of type DataObjectState
 			\item There should be exactly one initial state
-			\item THere should be at least one final state
+			\item There should be at least one final state
 		\end{itemize}\\
 		\hline
 		DataObjectState & INode & \begin{itemize}
